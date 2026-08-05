@@ -1,0 +1,1215 @@
+<!doctype html>
+<html lang="bn" class="h-full bg-slate-900 text-slate-100">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Work Dashboard</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body class="h-full font-sans antialiased bg-slate-900">
+    <!-- ================= AUTH CONTAINER ================= -->
+    <div
+      id="auth-container"
+      class="min-h-screen flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700"
+      >
+        <!-- Auth Tabs -->
+        <div class="flex border-b border-slate-700 mb-6">
+          <button
+            id="tab-login-btn"
+            onclick="switchAuthTab('login')"
+            class="w-1/2 py-2 text-center font-bold text-indigo-400 border-b-2 border-indigo-500"
+          >
+            লগইন
+          </button>
+          <button
+            id="tab-register-btn"
+            onclick="switchAuthTab('register')"
+            class="w-1/2 py-2 text-center font-bold text-slate-400 hover:text-slate-200"
+          >
+            রেজিস্ট্রেশন
+          </button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm mb-1 text-slate-300">ইমেইল</label>
+            <input
+              type="email"
+              id="login-email"
+              required
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+          <div>
+            <label class="block text-sm mb-1 text-slate-300">পাসওয়ার্ড</label>
+            <input
+              type="password"
+              id="login-password"
+              required
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition"
+          >
+            লগইন করুন
+          </button>
+        </form>
+
+        <!-- Register Form -->
+        <form
+          id="register-form"
+          onsubmit="handleRegister(event)"
+          class="space-y-4 hidden"
+        >
+          <div>
+            <label class="block text-sm mb-1 text-slate-300">ফুল নেম</label>
+            <input
+              type="text"
+              id="reg-fullname"
+              required
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+          <div>
+            <label class="block text-sm mb-1 text-slate-300">ইউজারনেম</label>
+            <input
+              type="text"
+              id="reg-username"
+              required
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+          <div>
+            <label class="block text-sm mb-1 text-slate-300">ইমেইল</label>
+            <input
+              type="email"
+              id="reg-email"
+              required
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+          <div>
+            <label class="block text-sm mb-1 text-slate-300">পাসওয়ার্ড</label>
+            <input
+              type="password"
+              id="reg-password"
+              minlength="6"
+              required
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+
+          <!-- Payment Method Tabs -->
+          <div>
+            <label class="block text-sm mb-1 text-slate-300"
+              >পেমেন্ট মেথড সিলেক্ট করুন</label
+            >
+            <div class="flex gap-2 mb-2">
+              <button
+                type="button"
+                id="pay-bkash-btn"
+                onclick="selectPaymentMethod('bkash')"
+                class="flex-1 py-2 bg-pink-600 font-semibold rounded-lg text-sm"
+              >
+                bKash
+              </button>
+              <button
+                type="button"
+                id="pay-nagad-btn"
+                onclick="selectPaymentMethod('nagad')"
+                class="flex-1 py-2 bg-slate-700 font-semibold rounded-lg text-sm"
+              >
+                Nagad
+              </button>
+            </div>
+            <input type="hidden" id="reg-pay-method" value="bkash" />
+            <input
+              type="text"
+              id="reg-pay-number"
+              placeholder="bKash নাম্বার দিন"
+              required
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition"
+          >
+            রেজিস্টার করুন
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= MAIN DASHBOARD CONTAINER ================= -->
+    <div
+      id="dashboard-container"
+      class="min-h-screen flex flex-col hidden relative"
+    >
+      <!-- Top Navbar -->
+      <header
+        class="bg-slate-800 border-b border-slate-700 px-4 sm:px-6 py-3.5 flex justify-between items-center sticky top-0 z-40"
+      >
+        <div class="flex items-center gap-3">
+          <!-- Mobile Sidebar Toggle Button -->
+          <button
+            onclick="toggleSidebar()"
+            class="md:hidden text-slate-300 hover:text-white p-1 rounded-lg focus:outline-none"
+            aria-label="Toggle Navigation"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              ></path>
+            </svg>
+          </button>
+          <h1 class="text-lg sm:text-xl font-bold text-indigo-400 truncate">
+            Work Dashboard
+          </h1>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-4">
+          <span
+            id="user-display-name"
+            class="text-xs sm:text-sm text-slate-300 font-medium truncate max-w-[120px] sm:max-w-none"
+          ></span>
+          <button
+            onclick="handleLogout()"
+            class="bg-red-600 hover:bg-red-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg font-bold transition whitespace-nowrap"
+          >
+            লগআউট
+          </button>
+        </div>
+      </header>
+
+      <!-- Sidebar Backdrop for Mobile/Tablet -->
+      <div
+        id="sidebar-overlay"
+        onclick="toggleSidebar()"
+        class="fixed inset-0 bg-black/60 z-40 hidden md:hidden transition-opacity"
+      ></div>
+
+      <div class="flex flex-1 relative">
+        <!-- Sidebar Navigation Menu -->
+        <aside
+          id="sidebar"
+          class="fixed md:static top-0 left-0 h-full md:h-auto w-64 bg-slate-800 border-r border-slate-700 p-4 shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col"
+        >
+          <!-- Mobile Sidebar Header with Close Button -->
+          <div
+            class="flex items-center justify-between md:hidden border-b border-slate-700 pb-3 mb-4"
+          >
+            <span class="font-bold text-slate-200">মেনু</span>
+            <button
+              onclick="toggleSidebar()"
+              class="text-slate-400 hover:text-white"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <button
+              onclick="selectDashTab('overview')"
+              class="dash-tab-btn px-4 py-3 rounded-lg font-medium text-sm text-left transition bg-indigo-600 text-white"
+              id="tab-overview"
+            >
+              ড্যাশবোর্ড ও ওভারভিউ
+            </button>
+            <button
+              onclick="selectDashTab('submit-work')"
+              class="dash-tab-btn px-4 py-3 rounded-lg font-medium text-sm text-left transition text-slate-400 hover:bg-slate-700/50"
+              id="tab-submit-work"
+            >
+              রিপোর্ট জমা দিন
+            </button>
+            <button
+              onclick="selectDashTab('reports')"
+              class="dash-tab-btn px-4 py-3 rounded-lg font-medium text-sm text-left transition text-slate-400 hover:bg-slate-700/50"
+              id="tab-reports"
+            >
+              ক্যাটাগরি রিপোর্ট
+            </button>
+            <button
+              onclick="selectDashTab('payment')"
+              class="dash-tab-btn px-4 py-3 rounded-lg font-medium text-sm text-left transition text-slate-400 hover:bg-slate-700/50"
+              id="tab-payment"
+            >
+              পেমেন্ট হিস্ট্রি
+            </button>
+            <button
+              onclick="selectDashTab('profile')"
+              class="dash-tab-btn px-4 py-3 rounded-lg font-medium text-sm text-left transition text-slate-400 hover:bg-slate-700/50"
+              id="tab-profile"
+            >
+              প্রোফাইল
+            </button>
+          </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="flex-1 p-4 sm:p-6 overflow-y-auto w-full">
+          <!-- Tab 1: Overview -->
+          <div id="view-overview" class="dash-view space-y-6">
+            <h2 class="text-xl sm:text-2xl font-bold">কাজের সামারি</h2>
+
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+            >
+              <div
+                class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700"
+              >
+                <p class="text-xs sm:text-sm text-slate-400 mb-1">
+                  আজকের মোট জমা
+                </p>
+                <h3
+                  id="stat-today-submissions"
+                  class="text-2xl sm:text-3xl font-extrabold text-white"
+                >
+                  0
+                </h3>
+              </div>
+              <div
+                class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700"
+              >
+                <p class="text-xs sm:text-sm text-slate-400 mb-1">
+                  মোট Valid/Good Account
+                </p>
+                <h3
+                  id="stat-good-accounts"
+                  class="text-2xl sm:text-3xl font-extrabold text-emerald-400"
+                >
+                  0
+                </h3>
+              </div>
+              <div
+                class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700 sm:col-span-2 lg:col-span-1"
+              >
+                <p class="text-xs sm:text-sm text-slate-400 mb-1">
+                  আনপেইড পাওনা (Due Payment)
+                </p>
+                <h3
+                  id="stat-due-payment"
+                  class="text-2xl sm:text-3xl font-extrabold text-indigo-400"
+                >
+                  ৳0.00
+                </h3>
+              </div>
+            </div>
+
+            <!-- Payment Slab Rates info -->
+            <div
+              class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60 text-xs text-slate-400 space-y-1.5"
+            >
+              <p class="font-bold text-slate-300">পেমেন্ট রেট হিসাব:</p>
+              <p>• ১ থেকে ৯৯ টি Good Account = ৳১.০০/tk</p>
+              <p>• ১০০ বা তার বেশি (১০০+) = ৳১.২০/tk</p>
+              <p>• ২০০ বা তার বেশি (২০০+) = ৳১.৫০/tk</p>
+              <p>• ১০০০ বা তার বেশি (১০০০+) = ৳২.০০/tk</p>
+            </div>
+          </div>
+
+          <!-- Tab 2: Submit Work -->
+          <div
+            id="view-submit-work"
+            class="dash-view hidden space-y-6 sm:space-y-8"
+          >
+            <!-- Header Section -->
+            <div
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-slate-800/90 to-indigo-950/40 p-4 sm:p-6 rounded-2xl border border-slate-700/60 shadow-xl backdrop-blur-md"
+            >
+              <div>
+                <h2
+                  class="text-xl sm:text-2xl font-extrabold text-white tracking-wide flex items-center gap-2"
+                >
+                  <svg
+                    class="w-6 h-6 sm:w-7 sm:h-7 text-indigo-400 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    ></path>
+                  </svg>
+                  কাজ জমা দিন
+                </h2>
+                <p class="text-slate-400 text-xs sm:text-sm mt-1">
+                  সঠিক তথ্য দিয়ে আপনার কাজের অ্যাকাউন্ট রিপোর্ট সাবমিট করুন
+                </p>
+              </div>
+              <div
+                class="self-start sm:self-auto flex items-center gap-2 bg-slate-900/60 px-3.5 py-1.5 rounded-xl border border-slate-700/50 text-xs font-semibold text-slate-300"
+              >
+                <span
+                  class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"
+                ></span>
+                ইনস্ট্যান্ট ডাটাবেজ সিঙ্ক
+              </div>
+            </div>
+
+            <!-- Main Grid: Left Form, Right Table -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <!-- Form Card (Left side) -->
+              <div
+                class="lg:col-span-5 bg-slate-800/80 backdrop-blur-md p-4 sm:p-6 rounded-2xl border border-slate-700/60 shadow-2xl space-y-5"
+              >
+                <div class="border-b border-slate-700/60 pb-3">
+                  <h3
+                    class="text-base sm:text-lg font-bold text-white flex items-center gap-2"
+                  >
+                    <svg
+                      class="w-5 h-5 text-indigo-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                      ></path>
+                    </svg>
+                    নতুন রিপোর্ট এন্ট্রি
+                  </h3>
+                </div>
+
+                <form onsubmit="handleWorkSubmit(event)" class="space-y-4">
+                  <div>
+                    <label
+                      class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2"
+                      >প্ল্যাটফর্ম সিলেক্ট করুন</label
+                    >
+                    <div class="relative">
+                      <select
+                        id="work-type"
+                        onchange="renderWorkInputs()"
+                        class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 pl-10 text-white font-medium focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 appearance-none transition text-sm"
+                      >
+                        <option value="" disabled selected>
+                          প্লাটফর্ম সিলেক্ট করুন
+                        </option>
+                        <option value="instagram">Instagram</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="meta_ai">Meta AI</option>
+                      </select>
+                      <div
+                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-indigo-400"
+                      >
+                        <svg
+                          class="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                          ></path>
+                        </svg>
+                      </div>
+                      <div
+                        class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 9l-7 7-7-7"
+                          ></path>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- dynamic inputs -->
+                  <div id="dynamic-work-inputs" class="space-y-4 pt-1">
+                    <!-- JS Render -->
+                  </div>
+
+                  <button
+                    type="submit"
+                    class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-900/30 transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"
+                      ></path>
+                    </svg>
+                    রিপোর্ট জমা দিন
+                  </button>
+                </form>
+              </div>
+
+              <!-- History Table Card (Right side) -->
+              <div
+                class="lg:col-span-7 bg-slate-800/80 backdrop-blur-md p-4 sm:p-6 rounded-2xl border border-slate-700/60 shadow-2xl space-y-4"
+              >
+                <div
+                  class="flex items-center justify-between border-b border-slate-700/60 pb-3"
+                >
+                  <h3
+                    class="text-base sm:text-lg font-bold text-white flex items-center gap-2"
+                  >
+                    <svg
+                      class="w-5 h-5 text-indigo-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      ></path>
+                    </svg>
+                    সাম্প্রতিক জমা দেওয়া কাজ
+                  </h3>
+                  <span class="text-xs text-slate-400 font-medium"
+                    >সর্বশেষ ৫টি</span
+                  >
+                </div>
+
+                <div
+                  class="overflow-x-auto rounded-xl border border-slate-700/50"
+                >
+                  <table
+                    class="w-full text-left text-sm text-slate-300 min-w-[500px]"
+                  >
+                    <thead
+                      class="bg-slate-900/80 text-xs font-semibold text-slate-400 uppercase tracking-wider"
+                    >
+                      <tr>
+                        <th class="p-3">প্ল্যাটফর্ম</th>
+                        <th class="p-3">আইডি / ইমেইল / ইউজার</th>
+                        <th class="p-3 text-right">রেট</th>
+                        <th class="p-3 text-center">তারিখ</th>
+                      </tr>
+                    </thead>
+                    <tbody
+                      id="recent-history-list"
+                      class="divide-y divide-slate-700/50 bg-slate-900/30"
+                    >
+                      <!-- Dynamic JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: Category Reports -->
+
+          <div id="view-reports" class="dash-view hidden space-y-6">
+            <h2 class="text-2xl font-bold text-white">
+              ক্যাটাগরি ওয়াইজ রিপোর্ট
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Instagram Card -->
+              <div
+                class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 hover:border-pink-500/50 transition-all shadow-xl"
+              >
+                <div
+                  class="flex items-center justify-between mb-4 border-b border-slate-700/60 pb-3"
+                >
+                  <h3 class="text-xl font-bold text-pink-400">Instagram</h3>
+                  <div class="flex items-center gap-2">
+                    <!-- আজকের জমা (Emerald Green Badge) -->
+                    <div
+                      class="flex flex-col items-center justify-center bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-lg"
+                    >
+                      <span class="text-[10px] font-semibold opacity-80"
+                        >আজকের জমা</span
+                      >
+                      <span
+                        id="cat-insta-today"
+                        class="text-base font-extrabold leading-tight"
+                        >0</span
+                      >
+                    </div>
+                    <!-- মোট জমা (Teal Green Badge) -->
+                    <div
+                      class="flex flex-col items-center justify-center bg-teal-600/20 border border-teal-500/40 text-teal-300 px-2.5 py-1 rounded-lg"
+                    >
+                      <span class="text-[10px] font-semibold opacity-80"
+                        >মোট জমা</span
+                      >
+                      <span
+                        id="cat-insta-total"
+                        class="text-base font-extrabold leading-tight"
+                        >0</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="space-y-2 text-sm text-slate-300">
+                  <p class="flex justify-between">
+                    <span>Good Accounts:</span>
+                    <strong id="cat-insta-good" class="text-emerald-400"
+                      >0</strong
+                    >
+                  </p>
+                  <p class="flex justify-between">
+                    <span>Bad Accounts:</span>
+                    <strong id="cat-insta-bad" class="text-rose-400">0</strong>
+                  </p>
+                  <hr class="border-slate-700/60 my-2" />
+                  <p class="flex justify-between font-semibold">
+                    <span>Good Account Earning:</span>
+                    <strong id="cat-insta-earn" class="text-emerald-400"
+                      >৳0.00</strong
+                    >
+                  </p>
+                  <p class="flex justify-between items-center pt-1">
+                    <span>Payment Status:</span>
+                    <span
+                      class="bg-amber-500/10 text-amber-400 text-xs px-2 py-0.5 rounded border border-amber-500/20 font-semibold"
+                      >Pending</span
+                    >
+                  </p>
+                </div>
+                <button
+                  onclick="openCategoryModal('instagram')"
+                  class="mt-4 text-xs font-semibold text-pink-400 hover:underline inline-block"
+                >
+                  ডিটেইলস দেখতে ক্লিক করুন →
+                </button>
+              </div>
+
+              <!-- Facebook Card -->
+              <div
+                class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 hover:border-blue-500/50 transition-all shadow-xl"
+              >
+                <div
+                  class="flex items-center justify-between mb-4 border-b border-slate-700/60 pb-3"
+                >
+                  <h3 class="text-xl font-bold text-blue-400">Facebook</h3>
+                  <div class="flex items-center gap-2">
+                    <!-- আজকের জমা (Emerald Green Badge) -->
+                    <div
+                      class="flex flex-col items-center justify-center bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-lg"
+                    >
+                      <span class="text-[10px] font-semibold opacity-80"
+                        >আজকের জমা</span
+                      >
+                      <span
+                        id="cat-fb-today"
+                        class="text-base font-extrabold leading-tight"
+                        >0</span
+                      >
+                    </div>
+                    <!-- মোট জমা (Teal Green Badge) -->
+                    <div
+                      class="flex flex-col items-center justify-center bg-teal-600/20 border border-teal-500/40 text-teal-300 px-2.5 py-1 rounded-lg"
+                    >
+                      <span class="text-[10px] font-semibold opacity-80"
+                        >মোট জমা</span
+                      >
+                      <span
+                        id="cat-fb-total"
+                        class="text-base font-extrabold leading-tight"
+                        >0</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="space-y-2 text-sm text-slate-300">
+                  <p class="flex justify-between">
+                    <span>Good Accounts:</span>
+                    <strong id="cat-fb-good" class="text-emerald-400">0</strong>
+                  </p>
+                  <p class="flex justify-between">
+                    <span>Bad Accounts:</span>
+                    <strong id="cat-fb-bad" class="text-rose-400">0</strong>
+                  </p>
+                  <hr class="border-slate-700/60 my-2" />
+                  <p class="flex justify-between font-semibold">
+                    <span>Good Account Earning:</span>
+                    <strong id="cat-fb-earn" class="text-emerald-400"
+                      >৳0.00</strong
+                    >
+                  </p>
+                  <p class="flex justify-between items-center pt-1">
+                    <span>Payment Status:</span>
+                    <span
+                      class="bg-amber-500/10 text-amber-400 text-xs px-2 py-0.5 rounded border border-amber-500/20 font-semibold"
+                      >Pending</span
+                    >
+                  </p>
+                </div>
+                <button
+                  onclick="openCategoryModal('facebook')"
+                  class="mt-4 text-xs font-semibold text-blue-400 hover:underline inline-block"
+                >
+                  ডিটেইলস দেখতে ক্লিক করুন →
+                </button>
+              </div>
+
+              <!-- Meta AI Card -->
+              <div
+                class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 hover:border-emerald-500/50 transition-all shadow-xl"
+              >
+                <div
+                  class="flex items-center justify-between mb-4 border-b border-slate-700/60 pb-3"
+                >
+                  <h3 class="text-xl font-bold text-emerald-400">Meta AI</h3>
+                  <div class="flex items-center gap-2">
+                    <!-- আজকের জমা (Emerald Green Badge) -->
+                    <div
+                      class="flex flex-col items-center justify-center bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-lg"
+                    >
+                      <span class="text-[10px] font-semibold opacity-80"
+                        >আজকের জমা</span
+                      >
+                      <span
+                        id="cat-meta-today"
+                        class="text-base font-extrabold leading-tight"
+                        >0</span
+                      >
+                    </div>
+                    <!-- মোট জমা (Teal Green Badge) -->
+                    <div
+                      class="flex flex-col items-center justify-center bg-teal-600/20 border border-teal-500/40 text-teal-300 px-2.5 py-1 rounded-lg"
+                    >
+                      <span class="text-[10px] font-semibold opacity-80"
+                        >মোট জমা</span
+                      >
+                      <span
+                        id="cat-meta-total"
+                        class="text-base font-extrabold leading-tight"
+                        >0</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="space-y-2 text-sm text-slate-300">
+                  <p class="flex justify-between">
+                    <span>Good Accounts:</span>
+                    <strong id="cat-meta-good" class="text-emerald-400"
+                      >0</strong
+                    >
+                  </p>
+                  <p class="flex justify-between">
+                    <span>Bad Accounts:</span>
+                    <strong id="cat-meta-bad" class="text-rose-400">0</strong>
+                  </p>
+                  <hr class="border-slate-700/60 my-2" />
+                  <p class="flex justify-between font-semibold">
+                    <span>Good Account Earning:</span>
+                    <strong id="cat-meta-earn" class="text-emerald-400"
+                      >৳0.00</strong
+                    >
+                  </p>
+                  <p class="flex justify-between items-center pt-1">
+                    <span>Payment Status:</span>
+                    <span
+                      class="bg-amber-500/10 text-amber-400 text-xs px-2 py-0.5 rounded border border-amber-500/20 font-semibold"
+                      >Pending</span
+                    >
+                  </p>
+                </div>
+                <button
+                  onclick="openCategoryModal('meta_ai')"
+                  class="mt-4 text-xs font-semibold text-emerald-400 hover:underline inline-block"
+                >
+                  ডিটেইলস দেখতে ক্লিক করুন →
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 4: Payment Tab -->
+          <div id="view-payment" class="dash-view space-y-6 hidden">
+            <h2 class="text-xl sm:text-2xl font-bold">
+              পেমেন্ট হিস্ট্রি ও স্ট্যাটাস
+            </h2>
+
+            <div
+              class="bg-slate-800 rounded-xl border border-slate-700 overflow-x-auto"
+            >
+              <table
+                class="w-full text-left text-sm text-slate-300 min-w-[600px]"
+              >
+                <thead class="bg-slate-900/50 text-slate-400 uppercase text-xs">
+                  <tr>
+                    <th class="p-3.5">আইডি</th>
+                    <th class="p-3.5">Good Accounts</th>
+                    <th class="p-3.5">মোট টাকা</th>
+                    <th class="p-3.5">মেথড</th>
+                    <th class="p-3.5">স্ট্যাটাস</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="payment-history-list"
+                  class="divide-y divide-slate-700/50"
+                >
+                  <!-- Dynamic JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab 5: Profile View -->
+          <div id="view-profile" class="dash-view hidden p-0 sm:p-4">
+            <div
+              class="w-full max-w-3xl mx-auto bg-slate-800/90 backdrop-blur-md rounded-2xl border border-slate-700/60 shadow-2xl overflow-hidden my-2 sm:my-6"
+            >
+              <!-- Profile Header Background -->
+              <div
+                class="h-24 sm:h-28 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 relative"
+              >
+                <div class="absolute -bottom-8 sm:-bottom-10 left-4 sm:left-6">
+                  <div
+                    class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-900 border-4 border-slate-800 flex items-center justify-center text-2xl sm:text-3xl font-extrabold text-indigo-400 shadow-xl"
+                  >
+                    <span id="profile-avatar-letter">J</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Profile Main Details -->
+              <div class="pt-10 sm:pt-12 p-4 sm:p-8 space-y-6">
+                <!-- Name & Badge -->
+                <div
+                  class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700/60 pb-5"
+                >
+                  <div>
+                    <h2
+                      id="prof-name"
+                      class="text-xl sm:text-2xl font-bold text-white tracking-wide"
+                    >
+                      Jony islam
+                    </h2>
+                    <p
+                      class="text-slate-400 text-xs sm:text-sm flex items-center gap-1 mt-0.5"
+                    >
+                      <svg
+                        class="w-4 h-4 text-indigo-400 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        ></path>
+                      </svg>
+                      @<span id="prof-username">jonycmt</span>
+                    </p>
+                  </div>
+                  <span
+                    class="self-start sm:self-auto px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5"
+                  >
+                    <span
+                      class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"
+                    ></span>
+                    Active Worker
+                  </span>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <!-- Email Box -->
+                  <div
+                    class="bg-slate-900/60 p-3.5 sm:p-4 rounded-xl border border-slate-700/50 flex items-center space-x-3"
+                  >
+                    <div
+                      class="p-2.5 sm:p-3 bg-indigo-500/10 text-indigo-400 rounded-lg shrink-0"
+                    >
+                      <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        ></path>
+                      </svg>
+                    </div>
+                    <div class="overflow-hidden">
+                      <p
+                        class="text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider"
+                      >
+                        ইমেইল এড্রেস
+                      </p>
+                      <p
+                        id="prof-email"
+                        class="text-xs sm:text-sm font-semibold text-slate-200 truncate mt-0.5"
+                      >
+                        devjony071@gmail.com
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Password Box with Show/Hide -->
+                  <div
+                    class="bg-slate-900/60 p-3.5 sm:p-4 rounded-xl border border-slate-700/50 flex items-center justify-between"
+                  >
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                      <div
+                        class="p-2.5 sm:p-3 bg-amber-500/10 text-amber-400 rounded-lg shrink-0"
+                      >
+                        <svg
+                          class="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                          ></path>
+                        </svg>
+                      </div>
+                      <div class="overflow-hidden">
+                        <p
+                          class="text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider"
+                        >
+                          পাসওয়ার্ড
+                        </p>
+                        <input
+                          type="password"
+                          id="prof-password"
+                          readonly
+                          value="123456"
+                          class="bg-transparent text-xs sm:text-sm font-semibold text-slate-200 focus:outline-none w-28 sm:w-32 border-none p-0 mt-0.5"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onclick="togglePasswordVisibility()"
+                      class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition"
+                    >
+                      <svg
+                        id="eye-icon"
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        ></path>
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        ></path>
+                      </svg>
+                    </button>
+                  </div>
+
+                  <!-- Payment Method Box -->
+                  <div
+                    class="bg-slate-900/60 p-3.5 sm:p-4 rounded-xl border border-slate-700/50 flex items-center space-x-3"
+                  >
+                    <div
+                      class="p-2.5 sm:p-3 bg-pink-500/10 text-pink-400 rounded-lg shrink-0"
+                    >
+                      <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                        ></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <p
+                        class="text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider"
+                      >
+                        পেমেন্ট মেথড
+                      </p>
+                      <p
+                        id="prof-pay-method"
+                        class="text-xs sm:text-sm font-semibold text-slate-200 uppercase mt-0.5"
+                      >
+                        BKASH
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Payment Number Box -->
+                  <div
+                    class="bg-slate-900/60 p-3.5 sm:p-4 rounded-xl border border-slate-700/50 flex items-center space-x-3"
+                  >
+                    <div
+                      class="p-2.5 sm:p-3 bg-emerald-500/10 text-emerald-400 rounded-lg shrink-0"
+                    >
+                      <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
+                        ></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <p
+                        class="text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider"
+                      >
+                        পেমেন্ট নাম্বার
+                      </p>
+                      <p
+                        id="prof-pay-number"
+                        class="text-xs sm:text-sm font-semibold text-emerald-400 tracking-wider mt-0.5"
+                      >
+                        01533235544
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Update Settings Forms -->
+                <div class="space-y-4 pt-4 border-t border-slate-700/60">
+                  <h3
+                    class="text-base sm:text-lg font-bold text-white flex items-center gap-2"
+                  >
+                    <svg
+                      class="w-5 h-5 text-indigo-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                      ></path>
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      ></path>
+                    </svg>
+                    অ্যাকাউন্ট সেটিংস আপডেট
+                  </h3>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <!-- Change Password Form -->
+                    <form
+                      onsubmit="handlePasswordUpdate(event)"
+                      class="bg-slate-900/40 p-4 rounded-xl border border-slate-700/50 space-y-3"
+                    >
+                      <h4 class="text-sm font-semibold text-slate-300">
+                        পাসওয়ার্ড পরিবর্তন করুন
+                      </h4>
+                      <div>
+                        <input
+                          type="password"
+                          id="update-new-pass"
+                          required
+                          placeholder="নতুন পাসওয়ার্ড দিন"
+                          class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded-lg text-sm transition"
+                      >
+                        পাসওয়ার্ড আপডেট করুন
+                      </button>
+                    </form>
+
+                    <!-- Change Payment Method Form -->
+                    <form
+                      onsubmit="handlePaymentUpdate(event)"
+                      class="bg-slate-900/40 p-4 rounded-xl border border-slate-700/50 space-y-3"
+                    >
+                      <h4 class="text-sm font-semibold text-slate-300">
+                        পেমেন্ট মেথড আপডেট করুন
+                      </h4>
+                      <div class="flex gap-2">
+                        <select
+                          id="update-pay-method"
+                          class="w-1/3 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500"
+                        >
+                          <option value="bkash">bKash</option>
+                          <option value="nagad">Nagad</option>
+                        </select>
+                        <input
+                          type="text"
+                          id="update-pay-number"
+                          required
+                          placeholder="নতুন মোবাইল নাম্বার"
+                          class="w-2/3 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        class="w-full bg-pink-600 hover:bg-pink-700 text-white font-medium py-2 rounded-lg text-sm transition"
+                      >
+                        পেমেন্ট মেথড আপডেট করুন
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ================= MODAL FOR CATEGORY ACCOUNTS ================= -->
+    <div
+      id="category-modal"
+      class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-50"
+    >
+      <div
+        class="bg-slate-800 rounded-xl border border-slate-700 w-full max-w-2xl p-4 sm:p-6 space-y-4 shadow-2xl"
+      >
+        <!-- Modal Header -->
+        <div
+          class="flex justify-between items-center border-b border-slate-700/60 pb-3"
+        >
+          <h3
+            id="modal-title"
+            class="text-lg sm:text-xl font-bold capitalize text-white"
+          ></h3>
+          <button
+            onclick="closeCategoryModal()"
+            class="text-slate-400 hover:text-white font-bold p-1 text-lg"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Date Filter Bar -->
+        <div
+          class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-lg border border-slate-700/50"
+        >
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <label
+              for="modal-date-filter"
+              class="text-xs sm:text-sm text-slate-300 font-medium whitespace-nowrap"
+              >তারিখ ফিল্টার:</label
+            >
+            <input
+              type="date"
+              id="modal-date-filter"
+              onchange="filterModalByDate()"
+              class="bg-slate-800 border border-slate-700 text-xs sm:text-sm text-white rounded-lg p-2 focus:outline-none focus:border-indigo-500 w-full sm:w-auto"
+            />
+          </div>
+          <button
+            onclick="resetModalDateFilter()"
+            class="text-xs text-indigo-400 hover:text-indigo-300 font-medium underline self-end sm:self-auto"
+          >
+            সব ডাটা দেখুন (Reset)
+          </button>
+        </div>
+
+        <!-- Table Area -->
+        <div
+          class="max-h-80 sm:max-h-96 overflow-y-auto overflow-x-auto rounded-lg border border-slate-700/50"
+        >
+          <table class="w-full text-left text-sm text-slate-300 min-w-[500px]">
+            <thead class="bg-slate-900/80 text-xs text-slate-400 uppercase">
+              <tr>
+                <th class="p-2.5">তারিখ</th>
+                <th class="p-2.5">USERNAME / ID</th>
+                <th class="p-2.5">PASSWORD</th>
+                <th class="p-2.5">2FA / EXTRA</th>
+              </tr>
+            </thead>
+            <tbody
+              id="modal-account-list"
+              class="divide-y divide-slate-700/50 bg-slate-900/30"
+            >
+              <!-- Dynamic JS Data -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom JavaScript File -->
+    <script src="script.js"></script>
+  </body>
+</html>
