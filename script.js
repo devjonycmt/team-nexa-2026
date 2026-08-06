@@ -9,20 +9,19 @@ let allUserReports = [];
 let currentModalCategory = "";
 let currentModalData = [];
 
-// ১. শুধু তারিখ বের করার হেলপার (যা HTML <input type="date"> এর সাথে ১০০% মিলবে)
+// ১. শুধু তারিখ বের করার হেলপার (Asia/Dhaka timezone)
 function formatDateToYYYYMMDD(dateString) {
   if (!dateString) return "";
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "";
 
-  // Asia/Dhaka টাইমজোনে YYYY-MM-DD বের করা
   const options = {
     timeZone: "Asia/Dhaka",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   };
-  const formatter = new Intl.DateTimeFormat("en-CA", options); // en-CA আউটপুট দেয় YYYY-MM-DD
+  const formatter = new Intl.DateTimeFormat("en-CA", options);
   return formatter.format(date);
 }
 
@@ -43,6 +42,14 @@ function formatDateWithTime(dateString) {
   };
 
   return new Intl.DateTimeFormat("en-US", options).format(date);
+}
+
+// ================= নতুন যোগ করা: স্ল্যাব রেট ক্যালকুলেটর =================
+function calculateSlabRate(totalGoodAccounts) {
+  if (totalGoodAccounts >= 1000) return 2.0;
+  if (totalGoodAccounts >= 200) return 1.5;
+  if (totalGoodAccounts >= 100) return 1.2;
+  return 1.0;
 }
 
 // On Load Check LocalStorage
@@ -244,38 +251,42 @@ async function loadUserData() {
   }
 }
 
-// ================= ৪. ড্যাশবোর্ড ও ক্যাটাগরি রিপোর্ট আপডেট লজিক =================
+// ================= ৪. ড্যাশবোর্ড ও ক্যাটাগরি রিপোর্ট আপডেট লজিক (আপডেটেড স্ল্যাব রেট) =================
 function updateStatsAndUI(reports = [], payments = []) {
-  const rates = {
-    instagram: 4.0,
-    facebook: 7.0,
-    meta_ai: 1.0,
-  };
-
   const safeReports = Array.isArray(reports) ? reports : [];
-
-  // বাংলাদেশ সময় (Asia/Dhaka) অনুযায়ী আজকের তারিখ বের করা
   const todayStr = formatDateToYYYYMMDD(new Date().toISOString());
 
+  // ১. সর্বমোট Good Accounts গণনা করা (স্ল্যাব রেট পাওয়ার জন্য)
   let overallGood = 0;
-  let overallEarnings = 0;
   let hasAnyGoodInputOverall = false;
+
+  safeReports.forEach((r) => {
+    if (
+      r.good_count !== null &&
+      r.good_count !== undefined &&
+      r.good_count !== ""
+    ) {
+      hasAnyGoodInputOverall = true;
+      overallGood += Number(r.good_count) || 0;
+    }
+  });
+
+  // ২. মোট Good Accounts এর ওপর ভিত্তি করে স্ল্যাব রেট নির্ধারণ
+  const currentRate = calculateSlabRate(overallGood);
+  const overallEarnings = overallGood * currentRate;
 
   const categories = ["instagram", "facebook", "meta_ai"];
 
-  // ক্যাটাগরি অনুযায়ী ক্যালকুলেশন
+  // ৩. ক্যাটাগরি অনুযায়ী ডাটা রেন্ডারিং
   categories.forEach((cat) => {
     const catReports = safeReports.filter((r) => r.work_name === cat);
-
     const totalCatCount = catReports.length;
 
-    // বাংলাদেশ টাইম অনুযায়ী আজকের সাবমিশন ফিল্টার
     const catToday = catReports.filter((r) => {
       if (!r.created_at) return false;
       return formatDateToYYYYMMDD(r.created_at) === todayStr;
     }).length;
 
-    // good_count ইনপুট দেওয়া হয়েছে কিনা চেক করা
     let hasGoodInput = false;
     let catGood = 0;
 
@@ -294,19 +305,13 @@ function updateStatsAndUI(reports = [], payments = []) {
     let catBadDisplay = "N/A";
     let catEarn = 0;
 
-    // ইনপুট দেওয়া হলেই কেবল Good ও Bad Account হিসেব হবে
     if (hasGoodInput) {
       catGoodDisplay = catGood;
       const catBad = totalCatCount >= catGood ? totalCatCount - catGood : 0;
       catBadDisplay = catBad;
-      catEarn = catGood * (rates[cat] || 1.0);
-
-      overallGood += catGood;
-      overallEarnings += catEarn;
-      hasAnyGoodInputOverall = true;
+      catEarn = catGood * currentRate; // নির্ধারিত রেট অনুযায়ী ইনকাম
     }
 
-    // UI-তে ডাটা সেট
     const prefix =
       cat === "instagram" ? "insta" : cat === "facebook" ? "fb" : "meta";
 
@@ -327,7 +332,7 @@ function updateStatsAndUI(reports = [], payments = []) {
         `৳${catEarn.toFixed(2)}`;
   });
 
-  // মেইন ড্যাশবোর্ড কার্ড ফিল্ডস আপডেট (আজকের মোট সাবমিশন)
+  // আজকের মোট সাবমিশন
   const todayCount = safeReports.filter((r) => {
     if (!r.created_at) return false;
     return formatDateToYYYYMMDD(r.created_at) === todayStr;
@@ -364,8 +369,6 @@ function updateStatsAndUI(reports = [], payments = []) {
           if (r.work_name === "instagram")
             badgeClass = "bg-pink-500/10 text-pink-400 border-pink-500/20";
 
-          const itemRate = rates[r.work_name] || 1.0;
-
           return `
             <tr class="hover:bg-slate-800/50 transition-colors border-t border-slate-700/50">
               <td class="p-3.5 font-semibold">
@@ -376,7 +379,7 @@ function updateStatsAndUI(reports = [], payments = []) {
               <td class="p-3.5 font-medium text-slate-200 truncate max-w-[180px]" title="${accountDisplay}">
                 ${accountDisplay}
               </td>
-              <td class="p-3.5 text-right font-semibold text-emerald-400">৳${itemRate.toFixed(2)}</td>
+              <td class="p-3.5 text-right font-semibold text-emerald-400">৳${currentRate.toFixed(2)}</td>
               <td class="p-3.5 text-center text-xs text-slate-400 font-mono">${formatDateWithTime(r.created_at)}</td>
             </tr>
           `;
@@ -385,29 +388,21 @@ function updateStatsAndUI(reports = [], payments = []) {
     }
   }
 
-  // ✅ আপডেটেড কোড:
   if (typeof renderPaymentHistoryFromReports === "function") {
     renderPaymentHistoryFromReports(safeReports);
   } else if (typeof renderPaymentHistory === "function") {
     renderPaymentHistory(payments);
   }
 }
-// ================= পেমেন্ট হিস্ট্রি টেবিল রেন্ডারিং (সর্বশেষ তারিখ উপরে থাকবে) =================
+
+// ================= পেমেন্ট হিস্ট্রি টেবিল রেন্ডারিং (স্ল্যাব রেটসহ) =================
 function renderPaymentHistoryFromReports(reports = []) {
   const paymentList = document.getElementById("payment-history-list");
   if (!paymentList) return;
 
   paymentList.innerHTML = "";
-
   const safeReports = Array.isArray(reports) ? reports : [];
 
-  const rates = {
-    instagram: 4.0,
-    facebook: 7.0,
-    meta_ai: 1.0,
-  };
-
-  // ১. তারিখ অনুযায়ী রিপোর্ট গ্রুপ করা
   const groupedByDate = {};
 
   safeReports.forEach((r) => {
@@ -423,38 +418,32 @@ function renderPaymentHistoryFromReports(reports = []) {
         groupedByDate[dateKey] = {
           date: dateKey,
           goodAccounts: 0,
-          totalAmount: 0,
         };
       }
-
-      const goodCount = Number(r.good_count) || 0;
-      const rate = rates[r.work_name] || 1.0;
-
-      groupedByDate[dateKey].goodAccounts += goodCount;
-      groupedByDate[dateKey].totalAmount += goodCount * rate;
+      groupedByDate[dateKey].goodAccounts += Number(r.good_count) || 0;
     }
   });
 
-  // ২. তারিখ অনুযায়ী Descending Order (সবচেয়ে নতুন/আজকের তারিখ উপরে) সর্ট করা
   const paymentDataList = Object.values(groupedByDate).sort((a, b) => {
     return new Date(b.date) - new Date(a.date);
   });
 
-  // ৩. যদি কোনো গুড একাউন্টের ইনপুট না পাওয়া যায়
   if (paymentDataList.length === 0) {
     paymentList.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 text-xs">কোনো পেমেন্ট হিস্ট্রি পাওয়া যায়নি (Good Accounts আপডেট হলে শো করবে)</td></tr>`;
     return;
   }
 
-  // ৪. টেবিলে রেন্ডার করা
   paymentDataList.forEach((pay) => {
+    const rate = calculateSlabRate(pay.goodAccounts);
+    const totalAmount = pay.goodAccounts * rate;
+
     const tr = document.createElement("tr");
     tr.className =
       "hover:bg-slate-800/40 transition-colors border-b border-slate-700/30";
     tr.innerHTML = `
       <td class="p-3.5 text-xs text-slate-400 font-mono">${pay.date}</td>
       <td class="p-3.5 text-xs text-slate-200 font-medium">${pay.goodAccounts} Accounts</td>
-      <td class="p-3.5 text-xs font-semibold text-emerald-400">৳${pay.totalAmount.toFixed(2)}</td>
+      <td class="p-3.5 text-xs font-semibold text-emerald-400">৳${totalAmount.toFixed(2)}</td>
       <td class="p-3.5 text-xs text-slate-300 uppercase">${(currentUser && currentUser.payment_method) || "bKash"}</td>
       <td class="p-3.5 text-xs">
         <span class="px-2.5 py-1 text-xs rounded-lg border uppercase tracking-wider font-bold bg-yellow-500/10 text-yellow-400 border-yellow-500/20">
@@ -465,6 +454,7 @@ function renderPaymentHistoryFromReports(reports = []) {
     paymentList.appendChild(tr);
   });
 }
+
 // কাজ জমা দেওয়ার ফাংশন
 async function handleWorkSubmit(e) {
   e.preventDefault();
@@ -576,9 +566,7 @@ function renderWorkInputs() {
   }
 }
 
-// ================= ৫. মোডাল লজিক (আপডেটেড) =================
-
-// মোডাল ওপেন করার ফাংশন
+// ================= ৫. মোডাল লজিক =================
 function openCategoryModal(category) {
   currentModalCategory = category;
 
@@ -591,7 +579,6 @@ function openCategoryModal(category) {
   const dateInput = document.getElementById("modal-date-filter");
   if (dateInput) dateInput.value = "";
 
-  // Supabase এর allUserReports এরে থেকে ডাটা ফিল্টার করা
   let sourceData = Array.isArray(allUserReports) ? allUserReports : [];
 
   currentModalData = sourceData.filter((item) => {
@@ -602,13 +589,11 @@ function openCategoryModal(category) {
   renderModalTable(currentModalData);
 }
 
-// মোডাল ক্লোজ
 function closeCategoryModal() {
   const modal = document.getElementById("category-modal");
   if (modal) modal.classList.add("hidden");
 }
 
-// টেবিল রেন্ডারিং
 function renderModalTable(dataList) {
   const tbody = document.getElementById("modal-account-list");
   if (!tbody) return;
@@ -622,12 +607,8 @@ function renderModalTable(dataList) {
 
   dataList.forEach((item) => {
     const itemDate = formatDateToYYYYMMDD(item.created_at || item.date);
-
-    // ইউজারনেম/ইমেইল/ইউআইডি নির্ধারণ
     const accountDisplay =
       item.account_username || item.account_email || item.uid || "-";
-
-    // ২এফএ / কুকিজ নির্ধারণ
     const extraInfo = item.two_fa || item.cookies || "-";
 
     const tr = document.createElement("tr");
@@ -643,7 +624,6 @@ function renderModalTable(dataList) {
   });
 }
 
-// তারিখ ফিল্টারিং (Asia/Dhaka timezone অনুয়াযী ম্যাচ করানো)
 function filterModalByDate() {
   const selectedDate = document.getElementById("modal-date-filter").value;
 
@@ -662,7 +642,6 @@ function filterModalByDate() {
   renderModalTable(filtered);
 }
 
-// তারিখ ফিল্টার রিসেট
 function resetModalDateFilter() {
   const dateInput = document.getElementById("modal-date-filter");
   if (dateInput) dateInput.value = "";
