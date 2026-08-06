@@ -44,11 +44,11 @@ function formatDateWithTime(dateString) {
   return new Intl.DateTimeFormat("en-US", options).format(date);
 }
 
-// ================= নতুন যোগ করা: স্ল্যাব রেট ক্যালকুলেটর =================
-function calculateSlabRate(totalGoodAccounts) {
-  if (totalGoodAccounts >= 1000) return 2.0;
-  if (totalGoodAccounts >= 200) return 1.5;
-  if (totalGoodAccounts >= 100) return 1.2;
+// ================= প্ল্যাটফর্ম রেট ক্যালকুলেটর =================
+function calculateSlabRate(totalGoodAccounts, workName) {
+  if (workName === "facebook") return 7.0;
+  if (workName === "instagram") return 4.0;
+  if (workName === "meta_ai") return 1.0;
   return 1.0;
 }
 
@@ -251,14 +251,14 @@ async function loadUserData() {
   }
 }
 
-// ================= ৪. ড্যাশবোর্ড ও ক্যাটাগরি রিপোর্ট আপডেট লজিক (আপডেটেড স্ল্যাব রেট) =================
+// ================= ৪. ড্যাশবোর্ড ও ক্যাটাগরি রিপোর্ট আপডেট লজিক =================
 function updateStatsAndUI(reports = [], payments = []) {
   const safeReports = Array.isArray(reports) ? reports : [];
   const todayStr = formatDateToYYYYMMDD(new Date().toISOString());
 
-  // ১. সর্বমোট Good Accounts গণনা করা (স্ল্যাব রেট পাওয়ার জন্য)
   let overallGood = 0;
   let hasAnyGoodInputOverall = false;
+  let overallEarnings = 0;
 
   safeReports.forEach((r) => {
     if (
@@ -267,17 +267,14 @@ function updateStatsAndUI(reports = [], payments = []) {
       r.good_count !== ""
     ) {
       hasAnyGoodInputOverall = true;
-      overallGood += Number(r.good_count) || 0;
+      const gCount = Number(r.good_count) || 0;
+      overallGood += gCount;
+      overallEarnings += gCount * calculateSlabRate(gCount, r.work_name);
     }
   });
 
-  // ২. মোট Good Accounts এর ওপর ভিত্তি করে স্ল্যাব রেট নির্ধারণ
-  const currentRate = calculateSlabRate(overallGood);
-  const overallEarnings = overallGood * currentRate;
-
   const categories = ["instagram", "facebook", "meta_ai"];
 
-  // ৩. ক্যাটাগরি অনুযায়ী ডাটা রেন্ডারিং
   categories.forEach((cat) => {
     const catReports = safeReports.filter((r) => r.work_name === cat);
     const totalCatCount = catReports.length;
@@ -304,12 +301,13 @@ function updateStatsAndUI(reports = [], payments = []) {
     let catGoodDisplay = "N/A";
     let catBadDisplay = "N/A";
     let catEarn = 0;
+    const catRate = calculateSlabRate(catGood, cat);
 
     if (hasGoodInput) {
       catGoodDisplay = catGood;
       const catBad = totalCatCount >= catGood ? totalCatCount - catGood : 0;
       catBadDisplay = catBad;
-      catEarn = catGood * currentRate; // নির্ধারিত রেট অনুযায়ী ইনকাম
+      catEarn = catGood * catRate;
     }
 
     const prefix =
@@ -332,7 +330,6 @@ function updateStatsAndUI(reports = [], payments = []) {
         `৳${catEarn.toFixed(2)}`;
   });
 
-  // আজকের মোট সাবমিশন
   const todayCount = safeReports.filter((r) => {
     if (!r.created_at) return false;
     return formatDateToYYYYMMDD(r.created_at) === todayStr;
@@ -350,7 +347,6 @@ function updateStatsAndUI(reports = [], payments = []) {
       `৳${overallEarnings.toFixed(2)}`;
   }
 
-  // সাম্প্রতিক জমা কাজের টেবিল রেন্ডার
   const recentList = document.getElementById("recent-history-list");
   if (recentList) {
     if (safeReports.length === 0) {
@@ -369,6 +365,8 @@ function updateStatsAndUI(reports = [], payments = []) {
           if (r.work_name === "instagram")
             badgeClass = "bg-pink-500/10 text-pink-400 border-pink-500/20";
 
+          const rowRate = calculateSlabRate(0, r.work_name);
+
           return `
             <tr class="hover:bg-slate-800/50 transition-colors border-t border-slate-700/50">
               <td class="p-3.5 font-semibold">
@@ -379,7 +377,7 @@ function updateStatsAndUI(reports = [], payments = []) {
               <td class="p-3.5 font-medium text-slate-200 truncate max-w-[180px]" title="${accountDisplay}">
                 ${accountDisplay}
               </td>
-              <td class="p-3.5 text-right font-semibold text-emerald-400">৳${currentRate.toFixed(2)}</td>
+              <td class="p-3.5 text-right font-semibold text-emerald-400">৳${rowRate.toFixed(2)}</td>
               <td class="p-3.5 text-center text-xs text-slate-400 font-mono">${formatDateWithTime(r.created_at)}</td>
             </tr>
           `;
@@ -395,7 +393,7 @@ function updateStatsAndUI(reports = [], payments = []) {
   }
 }
 
-// ================= পেমেন্ট হিস্ট্রি টেবিল রেন্ডারিং (স্ল্যাব রেটসহ) =================
+// ================= পেমেন্ট হিস্ট্রি টেবিল রেন্ডারিং =================
 function renderPaymentHistoryFromReports(reports = []) {
   const paymentList = document.getElementById("payment-history-list");
   if (!paymentList) return;
@@ -413,11 +411,13 @@ function renderPaymentHistoryFromReports(reports = []) {
       Number(r.good_count) > 0
     ) {
       const dateKey = formatDateToYYYYMMDD(r.created_at) || "N/A";
+      const workName = r.work_name;
 
       if (!groupedByDate[dateKey]) {
         groupedByDate[dateKey] = {
           date: dateKey,
           goodAccounts: 0,
+          workName: workName,
         };
       }
       groupedByDate[dateKey].goodAccounts += Number(r.good_count) || 0;
@@ -434,7 +434,7 @@ function renderPaymentHistoryFromReports(reports = []) {
   }
 
   paymentDataList.forEach((pay) => {
-    const rate = calculateSlabRate(pay.goodAccounts);
+    const rate = calculateSlabRate(pay.goodAccounts, pay.workName);
     const totalAmount = pay.goodAccounts * rate;
 
     const tr = document.createElement("tr");
