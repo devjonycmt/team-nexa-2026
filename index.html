@@ -592,257 +592,313 @@
           </div>
 
           <!-- Tab 3: Category Reports -->
-
-          <div id="view-reports" class="dash-view hidden space-y-6">
+          <div id="view-reports" class="dash-view hidden space-y-8">
             <h2 class="text-2xl font-bold text-white">
-              ক্যাটাগরি ওয়াইজ রিপোর্ট
+              ক্যাটাগরি ওয়াইজ রিপোর্ট ও ডেইলি হিস্ট্রি
             </h2>
 
+            <!-- স্টাইলিশ গ্রেডিয়েন্ট কার্ড সেকশন (সঠিক লোগো ও ডিজাইন সহ) -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <!-- Instagram Card -->
               <div
-                class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 hover:border-pink-500/50 transition-all shadow-xl"
+                class="relative overflow-hidden bg-gradient-to-br from-pink-500 to-rose-600 p-6 rounded-2xl shadow-xl text-white"
               >
-                <div
-                  class="flex items-center justify-between mb-4 border-b border-slate-700/60 pb-3"
-                >
-                  <h3 class="text-xl font-bold text-pink-400">Instagram</h3>
-                  <div class="flex items-center gap-2">
-                    <!-- আজকের জমা (Emerald Green Badge) -->
-                    <div
-                      class="flex flex-col items-center justify-center bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-lg"
-                    >
-                      <span class="text-[10px] font-semibold opacity-80"
-                        >আজকের জমা</span
-                      >
-                      <span
-                        id="cat-insta-today"
-                        class="text-base font-extrabold leading-tight"
-                        >0</span
-                      >
-                    </div>
-                    <!-- মোট জমা (Teal Green Badge) -->
-                    <div
-                      class="flex flex-col items-center justify-center bg-teal-600/20 border border-teal-500/40 text-teal-300 px-2.5 py-1 rounded-lg"
-                    >
-                      <span class="text-[10px] font-semibold opacity-80"
-                        >মোট জমা</span
-                      >
-                      <span
-                        id="cat-insta-total"
-                        class="text-base font-extrabold leading-tight"
-                        >0</span
-                      >
-                    </div>
+                <div class="flex items-center justify-between mb-4">
+                  <div
+                    class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center font-bold text-lg"
+                  >
+                    @
                   </div>
+                  <span
+                    class="text-xs font-bold px-3 py-1 bg-white/20 backdrop-blur-md rounded-full uppercase tracking-wider"
+                    >Instagram</span
+                  >
                 </div>
-
-                <div class="space-y-2 text-sm text-slate-300">
-                  <p class="flex justify-between">
-                    <span>Good Accounts:</span>
-                    <strong id="cat-insta-good" class="text-emerald-400"
-                      >0</strong
-                    >
-                  </p>
-                  <p class="flex justify-between">
-                    <span>Bad Accounts:</span>
-                    <strong id="cat-insta-bad" class="text-rose-400">0</strong>
-                  </p>
-                  <hr class="border-slate-700/60 my-2" />
-                  <p class="flex justify-between font-semibold">
-                    <span>Good Account Earning:</span>
-                    <strong id="cat-insta-earn" class="text-emerald-400"
-                      >৳0.00</strong
-                    >
-                  </p>
-                  <p class="flex justify-between items-center pt-1">
-                    <span>Payment Status:</span>
-                    <span
-                      class="bg-amber-500/10 text-amber-400 text-xs px-2 py-0.5 rounded border border-amber-500/20 font-semibold"
-                      >Pending</span
-                    >
-                  </p>
-                </div>
-                <button
-                  onclick="openCategoryModal('instagram')"
-                  class="mt-4 text-xs font-semibold text-pink-400 hover:underline inline-block"
+                <p
+                  class="text-xs font-medium opacity-90 uppercase tracking-wider"
                 >
-                  ডিটেইলস দেখতে ক্লিক করুন →
-                </button>
+                  Instagram Accounts
+                </p>
+                <h3 id="cat-insta-total" class="text-4xl font-extrabold mt-1">
+                  0
+                </h3>
               </div>
 
               <!-- Facebook Card -->
               <div
-                class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 hover:border-blue-500/50 transition-all shadow-xl"
+                class="relative overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-2xl shadow-xl text-white"
               >
-                <div
-                  class="flex items-center justify-between mb-4 border-b border-slate-700/60 pb-3"
-                >
-                  <h3 class="text-xl font-bold text-blue-400">Facebook</h3>
-                  <div class="flex items-center gap-2">
-                    <!-- আজকের জমা (Emerald Green Badge) -->
-                    <div
-                      class="flex flex-col items-center justify-center bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-lg"
-                    >
-                      <span class="text-[10px] font-semibold opacity-80"
-                        >আজকের জমা</span
-                      >
-                      <span
-                        id="cat-fb-today"
-                        class="text-base font-extrabold leading-tight"
-                        >0</span
-                      >
-                    </div>
-                    <!-- মোট জমা (Teal Green Badge) -->
-                    <div
-                      class="flex flex-col items-center justify-center bg-teal-600/20 border border-teal-500/40 text-teal-300 px-2.5 py-1 rounded-lg"
-                    >
-                      <span class="text-[10px] font-semibold opacity-80"
-                        >মোট জমা</span
-                      >
-                      <span
-                        id="cat-fb-total"
-                        class="text-base font-extrabold leading-tight"
-                        >0</span
-                      >
-                    </div>
+                <div class="flex items-center justify-between mb-4">
+                  <div
+                    class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center font-bold text-lg"
+                  >
+                    f
                   </div>
+                  <span
+                    class="text-xs font-bold px-3 py-1 bg-white/20 backdrop-blur-md rounded-full uppercase tracking-wider"
+                    >Facebook</span
+                  >
                 </div>
-
-                <div class="space-y-2 text-sm text-slate-300">
-                  <p class="flex justify-between">
-                    <span>Good Accounts:</span>
-                    <strong id="cat-fb-good" class="text-emerald-400">0</strong>
-                  </p>
-                  <p class="flex justify-between">
-                    <span>Bad Accounts:</span>
-                    <strong id="cat-fb-bad" class="text-rose-400">0</strong>
-                  </p>
-                  <hr class="border-slate-700/60 my-2" />
-                  <p class="flex justify-between font-semibold">
-                    <span>Good Account Earning:</span>
-                    <strong id="cat-fb-earn" class="text-emerald-400"
-                      >৳0.00</strong
-                    >
-                  </p>
-                  <p class="flex justify-between items-center pt-1">
-                    <span>Payment Status:</span>
-                    <span
-                      class="bg-amber-500/10 text-amber-400 text-xs px-2 py-0.5 rounded border border-amber-500/20 font-semibold"
-                      >Pending</span
-                    >
-                  </p>
-                </div>
-                <button
-                  onclick="openCategoryModal('facebook')"
-                  class="mt-4 text-xs font-semibold text-blue-400 hover:underline inline-block"
+                <p
+                  class="text-xs font-medium opacity-90 uppercase tracking-wider"
                 >
-                  ডিটেইলস দেখতে ক্লিক করুন →
-                </button>
+                  Facebook Accounts
+                </p>
+                <h3 id="cat-fb-total" class="text-4xl font-extrabold mt-1">
+                  0
+                </h3>
               </div>
 
               <!-- Meta AI Card -->
               <div
-                class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 hover:border-emerald-500/50 transition-all shadow-xl"
+                class="relative overflow-hidden bg-gradient-to-br from-purple-600 to-indigo-600 p-6 rounded-2xl shadow-xl text-white"
               >
-                <div
-                  class="flex items-center justify-between mb-4 border-b border-slate-700/60 pb-3"
-                >
-                  <h3 class="text-xl font-bold text-emerald-400">Meta AI</h3>
-                  <div class="flex items-center gap-2">
-                    <!-- আজকের জমা (Emerald Green Badge) -->
-                    <div
-                      class="flex flex-col items-center justify-center bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-lg"
-                    >
-                      <span class="text-[10px] font-semibold opacity-80"
-                        >আজকের জমা</span
-                      >
-                      <span
-                        id="cat-meta-today"
-                        class="text-base font-extrabold leading-tight"
-                        >0</span
-                      >
-                    </div>
-                    <!-- মোট জমা (Teal Green Badge) -->
-                    <div
-                      class="flex flex-col items-center justify-center bg-teal-600/20 border border-teal-500/40 text-teal-300 px-2.5 py-1 rounded-lg"
-                    >
-                      <span class="text-[10px] font-semibold opacity-80"
-                        >মোট জমা</span
-                      >
-                      <span
-                        id="cat-meta-total"
-                        class="text-base font-extrabold leading-tight"
-                        >0</span
-                      >
-                    </div>
+                <div class="flex items-center justify-between mb-4">
+                  <div
+                    class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center font-bold text-lg"
+                  >
+                    ✨
                   </div>
+                  <span
+                    class="text-xs font-bold px-3 py-1 bg-white/20 backdrop-blur-md rounded-full uppercase tracking-wider"
+                    >Meta AI</span
+                  >
+                </div>
+                <p
+                  class="text-xs font-medium opacity-90 uppercase tracking-wider"
+                >
+                  Meta AI Accounts
+                </p>
+                <h3 id="cat-meta-total" class="text-4xl font-extrabold mt-1">
+                  0
+                </h3>
+              </div>
+            </div>
+
+            <!-- নিচে তারিখ অনুযায়ী অ্যাকাউন্ট হিস্ট্রি টেবিল (গুড/ব্যাড কলাম ছাড়া) -->
+            <!-- তারিখভিত্তিক অ্যাকাউন্ট হিস্ট্রি টেবিল -->
+            <div
+              class="bg-slate-800/80 backdrop-blur-md p-6 rounded-2xl border border-slate-700/60 shadow-2xl mt-8"
+            >
+              <div class="mb-6">
+                <h3
+                  class="text-lg font-bold text-white flex items-center gap-2"
+                >
+                  <svg
+                    class="w-5 h-5 text-indigo-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    ></path>
+                  </svg>
+                  তারিখভিত্তিক একাউন্ট হিস্ট্রি (Date-wise Account History)
+                </h3>
+                <p class="text-slate-400 text-xs mt-1">
+                  প্রতিদিন কোন তারিখে ক্যাটাগরি অনুযায়ী কয়টি অ্যাকাউন্ট তৈরি করা
+                  হয়েছে
+                </p>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table
+                  class="w-full text-left text-sm text-slate-300 min-w-[700px]"
+                >
+                  <thead
+                    class="bg-slate-900/80 text-xs font-semibold text-slate-400 uppercase tracking-wider"
+                  >
+                    <tr>
+                      <th class="p-4">তারিখ (Date)</th>
+                      <th class="p-4">ক্যাটাগরি</th>
+                      <th class="p-4">অ্যাকাউন্ট সংখ্যা</th>
+                      <th class="p-4 text-center">স্ট্যাটাস</th>
+                      <th class="p-4 text-center">অ্যাকশন (Action)</th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="daily-account-history-list"
+                    class="divide-y divide-slate-700/50 bg-slate-900/30"
+                  >
+                    <tr>
+                      <td
+                        colspan="5"
+                        class="p-6 text-center text-slate-400 text-xs"
+                      >
+                        লোড হচ্ছে...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- ================= ভিউ ডিটেইলস মডাল (View Details Modal) ================= -->
+            <div
+              id="account-details-modal"
+              class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden"
+            >
+              <div
+                class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-4xl p-6 shadow-2xl relative text-slate-200 mx-4"
+              >
+                <!-- মডাল হেডার -->
+                <div
+                  class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4"
+                >
+                  <div>
+                    <h3
+                      id="modal-title"
+                      class="text-lg font-bold text-white uppercase"
+                    >
+                      অ্যাকাউন্ট ডিটেইলস লিস্ট
+                    </h3>
+                    <p
+                      id="modal-subtitle"
+                      class="text-xs text-slate-400 mt-0.5"
+                    >
+                      তারিখ ও ক্যাটাগরি অনুযায়ী বিস্তারিত তথ্য
+                    </p>
+                  </div>
+                  <button
+                    onclick="closeAccountDetailsModal()"
+                    class="p-2 text-slate-400 hover:text-white rounded-lg bg-slate-800/60 hover:bg-slate-800 transition-colors"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      ></path>
+                    </svg>
+                  </button>
                 </div>
 
-                <div class="space-y-2 text-sm text-slate-300">
-                  <p class="flex justify-between">
-                    <span>Good Accounts:</span>
-                    <strong id="cat-meta-good" class="text-emerald-400"
-                      >0</strong
+                <!-- মডাল বডি (সকল ইনফো দেখানোর জন্য টেবিল) -->
+                <!-- মডাল বডি -->
+                <div class="max-h-[60vh] overflow-x-auto overflow-y-auto">
+                  <table
+                    class="w-full text-left text-xs text-slate-300 min-w-[700px]"
+                  >
+                    <thead
+                      class="bg-slate-800/80 text-slate-400 uppercase sticky top-0"
                     >
-                  </p>
-                  <p class="flex justify-between">
-                    <span>Bad Accounts:</span>
-                    <strong id="cat-meta-bad" class="text-rose-400">0</strong>
-                  </p>
-                  <hr class="border-slate-700/60 my-2" />
-                  <p class="flex justify-between font-semibold">
-                    <span>Good Account Earning:</span>
-                    <strong id="cat-meta-earn" class="text-emerald-400"
-                      >৳0.00</strong
+                      <tr id="modal-header-row">
+                        <!-- জাভাস্ক্রিপ্ট থেকে এখানে ডাইনামিক হেডার লোড হবে, অতিরিক্ত কোনো tr রাখবেন না -->
+                      </tr>
+                    </thead>
+                    <tbody
+                      id="modal-accounts-list"
+                      class="divide-y divide-slate-800"
                     >
-                  </p>
-                  <p class="flex justify-between items-center pt-1">
-                    <span>Payment Status:</span>
-                    <span
-                      class="bg-amber-500/10 text-amber-400 text-xs px-2 py-0.5 rounded border border-amber-500/20 font-semibold"
-                      >Pending</span
-                    >
-                  </p>
+                      <tr>
+                        <td colspan="6" class="p-4 text-center text-slate-500">
+                          কোনো ডেটা পাওয়া যায়নি
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-                <button
-                  onclick="openCategoryModal('meta_ai')"
-                  class="mt-4 text-xs font-semibold text-emerald-400 hover:underline inline-block"
-                >
-                  ডিটেইলস দেখতে ক্লিক করুন →
-                </button>
+
+                <!-- মডাল ফুটার -->
+                <div class="mt-6 flex justify-end">
+                  <button
+                    onclick="closeAccountDetailsModal()"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-colors"
+                  >
+                    বন্ধ করুন
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Tab 4: Payment Tab -->
           <div id="view-payment" class="dash-view space-y-6 hidden">
-            <h2 class="text-xl sm:text-2xl font-bold">
-              পেমেন্ট হিস্ট্রি ও স্ট্যাটাস
-            </h2>
-
+            <!-- Section Header -->
             <div
-              class="bg-slate-800 rounded-xl border border-slate-700 overflow-x-auto"
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-800/80 p-4 sm:p-6 rounded-2xl border border-slate-700/60 shadow-xl"
             >
-              <table
-                class="w-full text-left text-sm text-slate-300 min-w-[600px]"
-              >
-                <thead class="bg-slate-900/50 text-slate-400 uppercase text-xs">
-                  <tr>
-                    <th class="p-3.5">আইডি</th>
-                    <th class="p-3.5">Good Accounts</th>
-                    <th class="p-3.5">মোট টাকা</th>
-                    <th class="p-3.5">মেথড</th>
-                    <th class="p-3.5">স্ট্যাটাস</th>
-                  </tr>
-                </thead>
-                <tbody
-                  id="payment-history-list"
-                  class="divide-y divide-slate-700/50"
+              <div>
+                <h2
+                  class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2"
                 >
-                  <!-- Dynamic JS -->
-                </tbody>
-              </table>
+                  <svg
+                    class="w-6 h-6 text-indigo-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                    ></path>
+                  </svg>
+                  পেমেন্ট হিস্ট্রি ও স্ট্যাটাস
+                </h2>
+                <p class="text-slate-400 text-xs sm:text-sm mt-1">
+                  অনলাইন পেমেন্ট ডাটাবেজ টেবিল থেকে আপনার পেমেন্টের বর্তমান
+                  অবস্থা ও ইতিহাস দেখুন
+                </p>
+              </div>
+              <div
+                class="flex items-center gap-2 bg-slate-900/60 px-3.5 py-1.5 rounded-xl border border-slate-700/50 text-xs font-semibold text-slate-300"
+              >
+                <span
+                  class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"
+                ></span>
+                রিয়েল-টাইম সিঙ্কড
+              </div>
+            </div>
+
+            <!-- Payment Table Container -->
+            <div
+              class="bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700/60 shadow-2xl overflow-hidden"
+            >
+              <div class="overflow-x-auto">
+                <table
+                  class="w-full text-left text-sm text-slate-300 min-w-[700px]"
+                >
+                  <thead
+                    class="bg-slate-900/80 text-xs font-semibold text-slate-400 uppercase tracking-wider"
+                  >
+                    <tr>
+                      <th class="p-4">তারিখ</th>
+                      <th class="p-4">গেটওয়ে</th>
+                      <th class="p-4">ট্রানজ্যাকশন আইডি</th>
+                      <th class="p-4">কাজের বিবরণী</th>
+                      <th class="p-4">অ্যাকাউন্ট স্ট্যাটাস</th>
+                      <th class="p-4">টাকা</th>
+                      <th class="p-4 text-center">স্ট্যাটাস</th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="payment-history-list"
+                    class="divide-y divide-slate-700/50 bg-slate-900/30"
+                  >
+                    <!-- Dynamic JS Data Will Be Inserted Here -->
+                    <tr>
+                      <td
+                        colspan="5"
+                        class="p-6 text-center text-slate-400 text-xs"
+                      >
+                        লোড হচ্ছে...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -1248,6 +1304,107 @@
       </div>
     </div>
 
+    <!-- ================= FLOATING GENERATOR ICON (BOTTOM-RIGHT) ================= -->
+    <div class="fixed bottom-6 right-6 z-40 group">
+      <button
+        onclick="openMetaGeneratorModal()"
+        class="relative bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white p-4 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 transform hover:scale-110 focus:outline-none border border-indigo-400/30"
+      >
+        <!-- Lightning Icon SVG -->
+        <svg
+          class="w-6 h-6 animate-pulse"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M13 10V3L4 14h7v7l9-11h-7z"
+          ></path>
+        </svg>
+
+        <!-- Notification Dot -->
+        <span
+          class="absolute top-0 right-0 h-3 w-3 bg-amber-400 rounded-full ring-2 ring-slate-900 animate-ping"
+        ></span>
+        <span
+          class="absolute top-0 right-0 h-3 w-3 bg-amber-400 rounded-full ring-2 ring-slate-900"
+        ></span>
+      </button>
+
+      <!-- Tooltip -->
+      <div
+        class="absolute right-16 bottom-2 bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap border border-slate-700"
+      >
+        ⚡ মেটা অ্যাকাউন্ট নিন
+      </div>
+    </div>
+
+    <!-- ================= PASSWORD PROMPT MODAL ================= -->
+    <div
+      id="password-prompt-modal"
+      class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-50"
+    >
+      <div
+        class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-sm p-6 space-y-4 shadow-2xl"
+      >
+        <div
+          class="flex justify-between items-center border-b border-slate-700 pb-3"
+        >
+          <h3 class="text-base font-bold text-white">সিক্রেট পাসওয়ার্ড দিন</h3>
+          <button
+            onclick="closePasswordPrompt()"
+            class="text-slate-400 hover:text-white font-bold text-lg"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="space-y-3">
+          <input
+            type="password"
+            id="generator-secret-pass"
+            placeholder="জেনারেটর পাসওয়ার্ড লিখুন"
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500"
+          />
+          <button
+            onclick="verifyGeneratorPassword()"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition text-sm"
+          >
+            সাবমিট করুন
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= META ACCOUNT GENERATOR MODAL ================= -->
+    <div
+      id="meta-generator-modal"
+      class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-50"
+    >
+      <div
+        class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-md p-6 space-y-4 shadow-2xl"
+      >
+        <div
+          class="flex justify-between items-center border-b border-slate-700 pb-3"
+        >
+          <h3 class="text-base font-bold text-white">
+            মেটা অ্যাকাউন্ট জেনারেটর
+          </h3>
+          <button
+            onclick="closeMetaGeneratorModal()"
+            class="text-slate-400 hover:text-white font-bold text-lg"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Dynamic Content Area -->
+        <div id="generator-content-area"></div>
+      </div>
+    </div>
     <!-- Custom JavaScript File -->
     <script src="script.js"></script>
   </body>

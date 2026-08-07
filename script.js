@@ -44,6 +44,34 @@ function formatDateWithTime(dateString) {
   return new Intl.DateTimeFormat("en-US", options).format(date);
 }
 
+function getBangladeshISOString() {
+  const now = new Date();
+  const options = {
+    timeZone: "Asia/Dhaka",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  };
+  const formatter = new Intl.DateTimeFormat("en-CA", options);
+  const parts = formatter.formatToParts(now);
+
+  let year, month, day, hour, minute, second;
+  parts.forEach((p) => {
+    if (p.type === "year") year = p.value;
+    if (p.type === "month") month = p.value;
+    if (p.type === "day") day = p.value;
+    if (p.type === "hour") hour = p.value;
+    if (p.type === "minute") minute = p.value;
+    if (p.type === "second") second = p.value;
+  });
+
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}+06:00`;
+}
+
 // ================= প্ল্যাটফর্ম রেট ক্যালকুলেটর =================
 function calculateSlabRate(totalGoodAccounts, workName) {
   if (workName === "facebook") return 7.0;
@@ -198,11 +226,12 @@ function handleLogout() {
   showAuth();
 }
 
-// ================= ৩. ডাটা লোড =================
+// ================= ৩. ডাটা লোড (Online Payments & Work Reports Fetching) =================
 async function loadUserData() {
   if (!currentUser) return;
   showDashboard();
 
+  // ইউজারের প্রফাইল ডাটা সেট করা
   document.getElementById("user-display-name").innerText =
     currentUser.full_name || "User";
   document.getElementById("prof-name").innerText = currentUser.full_name || "";
@@ -226,6 +255,7 @@ async function loadUserData() {
   }
 
   try {
+    // ১. কাজের রিপোর্ট লোড
     const { data: reports, error: reportsError } = await supabaseClient
       .from("work_reports")
       .select("*")
@@ -236,23 +266,116 @@ async function loadUserData() {
       console.error("Work reports load error:", reportsError.message);
     allUserReports = reports || [];
 
-    const { data: payments, error: paymentsError } = await supabaseClient
-      .from("payments")
+    // ২. online_payments টেবিল থেকে বর্তমান ইউজারের পেমেন্ট ডাটা সরাসরি ফেচ করা
+    const { data: userPayments, error: paymentsError } = await supabaseClient
+      .from("online_payments")
       .select("*")
-      .eq("user_id", currentUser.id);
+      .eq("user_id", currentUser.id)
+      .order("created_at", { ascending: false });
 
-    if (paymentsError)
-      console.error("Payments load error:", paymentsError.message);
+    if (paymentsError) {
+      console.error("Online payments load error:", paymentsError.message);
+    }
 
-    updateStatsAndUI(allUserReports, payments || []);
+    // ৩. পেমেন্ট হিস্ট্রি টেবিল রেন্ডার করা এবং স্ট্যাটাস আপডেট করা
+    renderOnlinePaymentsHistory(userPayments || []);
+    updateStatsAndUI(allUserReports);
+
+    // ================= এই অংশটুকু এখানে বসাবেন =================
+    const groupedHistory = {};
+    allUserReports.forEach((report) => {
+      const dateStr = formatDateToYYYYMMDD(report.created_at);
+      const category = report.work_name || "general";
+      const key = `${dateStr}_${category}`;
+
+      if (!groupedHistory[key]) {
+        groupedHistory[key] = {
+          date: dateStr,
+          category: category,
+          total_accounts: 0,
+          status: "Completed",
+          accounts: [],
+        };
+      }
+      groupedHistory[key].total_accounts += 1;
+      groupedHistory[key].accounts.push(report); // সম্পূর্ণ রিপোর্ট অবজেক্ট সেভ করা হলো
+    });
+
+    renderDailyAccountHistoryTable(Object.values(groupedHistory));
+    // ========================================================
   } catch (error) {
     console.error("Error fetching user data:", error);
-    updateStatsAndUI([], []);
+    updateStatsAndUI([]);
+    renderDailyAccountHistoryTable([]);
   }
 }
+// ================= অনলাইন পেমেন্ট হিস্ট্রি রেন্ডারিং ফাংশন =================
+function renderOnlinePaymentsHistory(payments = []) {
+  const paymentList = document.getElementById("payment-history-list");
+  if (!paymentList) return;
 
-// ================= ৪. ড্যাশবোর্ড ও ক্যাটাগরি রিপোর্ট আপডেট লজিক =================
-function updateStatsAndUI(reports = [], payments = []) {
+  paymentList.innerHTML = "";
+
+  if (!payments || payments.length === 0) {
+    paymentList.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400 text-xs">কোনো পেমেন্ট হিস্ট্রি পাওয়া যায়নি</td></tr>`;
+    return;
+  }
+
+  payments.forEach((pay) => {
+    let status = pay.status ? pay.status.toLowerCase() : "pending";
+    let statusBadge = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+
+    if (status === "success" || status === "completed" || status === "paid") {
+      statusBadge = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+    } else if (status === "rejected" || status === "failed") {
+      statusBadge = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+    }
+
+    const payDate = formatDateWithTime(pay.created_at || pay.date) || "N/A";
+    const gateway = pay.gateway || pay.payment_method || "N/A";
+    const trxId = pay.transaction_id || pay.trx_id || "N/A";
+    const workDetails =
+      pay.work_details || pay.description || pay.note || "N/A";
+
+    // কাজের বিবরণী থেকে সংখ্যা (Count) বের করা
+    let match = workDetails.match(/\d+/);
+    let countNum = match ? match[0] : pay.good_account_count || pay.count || "";
+
+    // অ্যাকাউন্ট স্ট্যাটাসে সুন্দর ফরম্যাটে সংখ্যাসহ দেখানো
+    let accountStatusDisplay = countNum
+      ? `${countNum} গুড অ্যাকাউন্ট`
+      : pay.account_status || "Good Account";
+
+    const amount = Number(pay.amount || pay.total_amount || 0).toFixed(2);
+    const displayStatus = pay.status ? pay.status.toUpperCase() : "PENDING";
+
+    const tr = document.createElement("tr");
+    tr.className =
+      "hover:bg-slate-800/40 transition-colors border-b border-slate-700/30";
+    tr.innerHTML = `
+      <td class="p-4 text-xs text-slate-300 font-mono">${payDate}</td>
+      <td class="p-4 text-xs text-slate-200 uppercase font-medium">${gateway}</td>
+      <td class="p-4 text-xs text-slate-400 font-mono">${trxId}</td>
+      <td class="p-4 text-xs text-slate-300">${workDetails}</td>
+      <td class="p-4 text-xs">
+        <span class="px-3 py-1.5 text-xs rounded-lg border font-semibold bg-emerald-500/10 text-emerald-400 border-emerald-500/30 flex items-center gap-1.5 w-max shadow-sm">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          ${accountStatusDisplay}
+        </span>
+      </td>
+      <td class="p-4 text-xs font-semibold text-emerald-400">৳${amount}</td>
+      <td class="p-4 text-xs text-center">
+        <span class="px-3 py-1 text-xs rounded-lg border uppercase tracking-wider font-bold ${statusBadge}">
+          ${displayStatus}
+        </span>
+      </td>
+    `;
+    paymentList.appendChild(tr);
+  });
+}
+function updateStatsAndUI(reports = []) {
   const safeReports = Array.isArray(reports) ? reports : [];
   const todayStr = formatDateToYYYYMMDD(new Date().toISOString());
 
@@ -276,58 +399,36 @@ function updateStatsAndUI(reports = [], payments = []) {
   const categories = ["instagram", "facebook", "meta_ai"];
 
   categories.forEach((cat) => {
-    const catReports = safeReports.filter((r) => r.work_name === cat);
-    const totalCatCount = catReports.length;
-
-    const catToday = catReports.filter((r) => {
-      if (!r.created_at) return false;
+    // শুধুমাত্র আজকের রিপোর্টগুলো ফিল্টার করা হচ্ছে কার্ডের জন্য
+    const catTodayReports = safeReports.filter((r) => {
+      if (r.work_name !== cat || !r.created_at) return false;
       return formatDateToYYYYMMDD(r.created_at) === todayStr;
-    }).length;
-
-    let hasGoodInput = false;
-    let catGood = 0;
-
-    catReports.forEach((r) => {
-      if (
-        r.good_count !== null &&
-        r.good_count !== undefined &&
-        r.good_count !== ""
-      ) {
-        hasGoodInput = true;
-        catGood += Number(r.good_count) || 0;
-      }
     });
 
-    let catGoodDisplay = "N/A";
-    let catBadDisplay = "N/A";
-    let catEarn = 0;
-    const catRate = calculateSlabRate(catGood, cat);
-
-    if (hasGoodInput) {
-      catGoodDisplay = catGood;
-      const catBad = totalCatCount >= catGood ? totalCatCount - catGood : 0;
-      catBadDisplay = catBad;
-      catEarn = catGood * catRate;
-    }
+    // কার্ডে দেখানোর জন্য আজকের মোট অ্যাকাউন্ট সংখ্যা
+    const catTodayCount = catTodayReports.length;
 
     const prefix =
       cat === "instagram" ? "insta" : cat === "facebook" ? "fb" : "meta";
 
+    // কার্ডের নির্দিষ্ট এলিমেন্টে আজকের সংখ্যা বসানো
     if (document.getElementById(`cat-${prefix}-today`))
-      document.getElementById(`cat-${prefix}-today`).innerText = catToday;
+      document.getElementById(`cat-${prefix}-today`).innerText = catTodayCount;
 
     if (document.getElementById(`cat-${prefix}-total`))
-      document.getElementById(`cat-${prefix}-total`).innerText = totalCatCount;
+      document.getElementById(`cat-${prefix}-total`).innerText = catTodayCount;
 
     if (document.getElementById(`cat-${prefix}-good`))
-      document.getElementById(`cat-${prefix}-good`).innerText = catGoodDisplay;
+      document.getElementById(`cat-${prefix}-good`).innerText = catTodayCount;
 
     if (document.getElementById(`cat-${prefix}-bad`))
-      document.getElementById(`cat-${prefix}-bad`).innerText = catBadDisplay;
+      document.getElementById(`cat-${prefix}-bad`).innerText = "0";
 
-    if (document.getElementById(`cat-${prefix}-earn`))
+    if (document.getElementById(`cat-${prefix}-earn`)) {
+      const rate = calculateSlabRate(catTodayCount, cat);
       document.getElementById(`cat-${prefix}-earn`).innerText =
-        `৳${catEarn.toFixed(2)}`;
+        `৳${(catTodayCount * rate).toFixed(2)}`;
+    }
   });
 
   const todayCount = safeReports.filter((r) => {
@@ -385,74 +486,6 @@ function updateStatsAndUI(reports = [], payments = []) {
         .join("");
     }
   }
-
-  if (typeof renderPaymentHistoryFromReports === "function") {
-    renderPaymentHistoryFromReports(safeReports);
-  } else if (typeof renderPaymentHistory === "function") {
-    renderPaymentHistory(payments);
-  }
-}
-
-// ================= পেমেন্ট হিস্ট্রি টেবিল রেন্ডারিং =================
-function renderPaymentHistoryFromReports(reports = []) {
-  const paymentList = document.getElementById("payment-history-list");
-  if (!paymentList) return;
-
-  paymentList.innerHTML = "";
-  const safeReports = Array.isArray(reports) ? reports : [];
-
-  const groupedByDate = {};
-
-  safeReports.forEach((r) => {
-    if (
-      r.good_count !== null &&
-      r.good_count !== undefined &&
-      r.good_count !== "" &&
-      Number(r.good_count) > 0
-    ) {
-      const dateKey = formatDateToYYYYMMDD(r.created_at) || "N/A";
-      const workName = r.work_name;
-
-      if (!groupedByDate[dateKey]) {
-        groupedByDate[dateKey] = {
-          date: dateKey,
-          goodAccounts: 0,
-          workName: workName,
-        };
-      }
-      groupedByDate[dateKey].goodAccounts += Number(r.good_count) || 0;
-    }
-  });
-
-  const paymentDataList = Object.values(groupedByDate).sort((a, b) => {
-    return new Date(b.date) - new Date(a.date);
-  });
-
-  if (paymentDataList.length === 0) {
-    paymentList.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 text-xs">কোনো পেমেন্ট হিস্ট্রি পাওয়া যায়নি (Good Accounts আপডেট হলে শো করবে)</td></tr>`;
-    return;
-  }
-
-  paymentDataList.forEach((pay) => {
-    const rate = calculateSlabRate(pay.goodAccounts, pay.workName);
-    const totalAmount = pay.goodAccounts * rate;
-
-    const tr = document.createElement("tr");
-    tr.className =
-      "hover:bg-slate-800/40 transition-colors border-b border-slate-700/30";
-    tr.innerHTML = `
-      <td class="p-3.5 text-xs text-slate-400 font-mono">${pay.date}</td>
-      <td class="p-3.5 text-xs text-slate-200 font-medium">${pay.goodAccounts} Accounts</td>
-      <td class="p-3.5 text-xs font-semibold text-emerald-400">৳${totalAmount.toFixed(2)}</td>
-      <td class="p-3.5 text-xs text-slate-300 uppercase">${(currentUser && currentUser.payment_method) || "bKash"}</td>
-      <td class="p-3.5 text-xs">
-        <span class="px-2.5 py-1 text-xs rounded-lg border uppercase tracking-wider font-bold bg-yellow-500/10 text-yellow-400 border-yellow-500/20">
-          Pending
-        </span>
-      </td>
-    `;
-    paymentList.appendChild(tr);
-  });
 }
 
 // কাজ জমা দেওয়ার ফাংশন
@@ -474,6 +507,7 @@ async function handleWorkSubmit(e) {
     two_fa: "",
     uid: "",
     cookies: "",
+    created_at: getBangladeshISOString(),
   };
 
   if (work_name === "instagram") {
@@ -501,9 +535,9 @@ async function handleWorkSubmit(e) {
 
   const { error } = await supabaseClient.from("work_reports").insert([payload]);
 
-  if (error) return alert("জমা ব্যর্থ হয়েছে: " + error.message);
+  if (error) return alert("জমা ব্যর্থ হয়েছে: " + error.message);
 
-  alert("কাজটি সফলভাবে জমা হয়েছে!");
+  alert("কাজটি সফলভাবে জমা হয়েছে!");
 
   if (e.target) e.target.reset();
   renderWorkInputs();
@@ -726,40 +760,305 @@ function selectDashTab(tabName) {
   if (window.innerWidth < 768) toggleSidebar();
 }
 
-// ================= পেমেন্ট হিস্ট্রি টেবিল রেন্ডারিং =================
-function renderPaymentHistory(payments = []) {
-  const paymentList = document.getElementById("payment-history-list");
-  if (!paymentList) return;
+// ================= মেটা অ্যাকাউন্ট জেনারেটর সিস্টেম =================
+const GENERATOR_SECRET_PASSWORD = "Jony@8844!!!";
 
-  paymentList.innerHTML = "";
+function openMetaGeneratorModal() {
+  if (typeof currentUser !== "undefined" && !currentUser) {
+    return alert("দয়া করে আগে লগইন করুন!");
+  }
+  document.getElementById("password-prompt-modal").classList.remove("hidden");
+  document.getElementById("generator-secret-pass").value = "";
+}
 
-  if (!payments || payments.length === 0) {
-    paymentList.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 text-xs">কোনো পেমেন্ট হিস্ট্রি পাওয়া যায়নি</td></tr>`;
+function closePasswordPrompt() {
+  document.getElementById("password-prompt-modal").classList.add("hidden");
+}
+
+async function verifyGeneratorPassword() {
+  const enteredPass = document.getElementById("generator-secret-pass").value;
+
+  if (enteredPass !== GENERATOR_SECRET_PASSWORD) {
+    return alert("ভুল পাসওয়ার্ড দেওয়া হয়েছে!");
+  }
+
+  closePasswordPrompt();
+  document.getElementById("meta-generator-modal").classList.remove("hidden");
+
+  await fetchAndLockMetaAccount();
+}
+
+function closeMetaGeneratorModal() {
+  document.getElementById("meta-generator-modal").classList.add("hidden");
+}
+
+async function fetchAndLockMetaAccount() {
+  const contentArea = document.getElementById("generator-content-area");
+  contentArea.innerHTML = `<p class="text-center text-slate-400 py-6 text-sm">অ্যাকাউন্ট জেনারেট হচ্ছে...</p>`;
+
+  const userId =
+    typeof currentUser !== "undefined" && currentUser
+      ? currentUser.id || currentUser.email
+      : "guest_user";
+
+  let { data: existingLock } = await supabaseClient
+    .from("meta_accounts")
+    .select("*")
+    .eq("status", "locked")
+    .eq("locked_by", userId)
+    .single();
+
+  let acc = existingLock;
+
+  if (!acc) {
+    const { data: availableAccs, error: fetchError } = await supabaseClient
+      .from("meta_accounts")
+      .select("*")
+      .eq("status", "available")
+      .limit(1);
+
+    if (fetchError || !availableAccs || availableAccs.length === 0) {
+      contentArea.innerHTML = `
+        <div class="text-center py-8 space-y-2">
+          <p class="text-amber-400 font-semibold text-base">দুঃখিত! বর্তমানে কোনো অ্যাকাউন্ট খালি নেই।</p>
+          <p class="text-slate-400 text-xs">meta_accounts টেবিলে 'available' স্ট্যাটাসের কোনো অ্যাকাউন্ট পাওয়া যায়নি।</p>
+        </div>
+      `;
+      return;
+    }
+
+    acc = availableAccs[0];
+
+    const { error: lockError } = await supabaseClient
+      .from("meta_accounts")
+      .update({
+        status: "locked",
+        locked_by: userId,
+      })
+      .eq("id", acc.id)
+      .eq("status", "available");
+
+    if (lockError) {
+      contentArea.innerHTML = `<p class="text-center text-rose-400 py-6 text-sm">লক করতে সমস্যা হয়েছে: ${lockError.message}</p>`;
+      return;
+    }
+  }
+
+  contentArea.innerHTML = `
+    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700/80 space-y-3">
+      <div class="flex justify-between items-center">
+        <span class="text-xs font-semibold text-slate-400 uppercase">আপনার জন্য বরাদ্দকৃত অ্যাকাউন্ট</span>
+        <span class="bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold">Reserved</span>
+      </div>
+
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between items-center bg-slate-800 p-2.5 rounded-lg border border-slate-700/50">
+          <div>
+            <span class="text-[10px] text-slate-400 block">Email:</span>
+            <span class="text-slate-200 font-mono text-xs">${acc.account_email || "N/A"}</span>
+          </div>
+          <button onclick="copyText('${acc.account_email}', 'Email')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2.5 py-1.5 rounded-md transition">কপি</button>
+        </div>
+
+        <div class="flex justify-between items-center bg-slate-800 p-2.5 rounded-lg border border-slate-700/50">
+          <div>
+            <span class="text-[10px] text-slate-400 block">Username:</span>
+            <span class="text-slate-200 font-mono text-xs">${acc.account_username || "N/A"}</span>
+          </div>
+          <button onclick="copyText('${acc.account_username}', 'Username')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2.5 py-1.5 rounded-md transition">কপি</button>
+        </div>
+
+        <div class="flex justify-between items-center bg-slate-800 p-2.5 rounded-lg border border-slate-700/50">
+          <div>
+            <span class="text-[10px] text-slate-400 block">Password:</span>
+            <span class="text-slate-200 font-mono text-xs">${acc.account_password || "N/A"}</span>
+          </div>
+          <button onclick="copyText('${acc.account_password}', 'Password')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2.5 py-1.5 rounded-md transition">কপি</button>
+        </div>
+      </div>
+
+      <button 
+        onclick="finalizeAccount('${acc.id}')"
+        class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3 rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2 mt-2">
+        ফাইনাল কনফার্ম করুন (Done)
+      </button>
+    </div>
+  `;
+}
+
+async function finalizeAccount(accountId) {
+  if (
+    !confirm(
+      "আপনি কি নিশ্চিত? কনফার্ম করলে অ্যাকাউন্টটি ব্যবহৃত (used) হিসেবে সেভ হয়ে যাবে।",
+    )
+  )
+    return;
+
+  const userId =
+    typeof currentUser !== "undefined" && currentUser
+      ? currentUser.id || currentUser.email
+      : "guest_user";
+
+  const { error } = await supabaseClient
+    .from("meta_accounts")
+    .update({
+      status: "used",
+      used_by: userId,
+    })
+    .eq("id", accountId);
+
+  if (error) {
+    return alert("ত্রুটি: " + error.message);
+  }
+
+  alert("সফলভাবে সম্পন্ন হয়েছে!");
+  closeMetaGeneratorModal();
+}
+
+function copyText(text, label) {
+  navigator.clipboard.writeText(text);
+  alert(label + " সফলভাবে কপি করা হয়েছে!");
+}
+
+// ================= ডেইলি হিস্ট্রি টেবিল ও ভিউ বাটন রেন্ডারিং =================
+function renderDailyAccountHistoryTable(historyData = []) {
+  const historyList = document.getElementById("daily-account-history-list");
+  if (!historyList) return;
+
+  historyList.innerHTML = "";
+
+  if (!historyData || historyData.length === 0) {
+    historyList.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400 text-xs">কোনো হিস্ট্রি পাওয়া যায়নি</td></tr>`;
     return;
   }
 
-  payments.forEach((pay, index) => {
-    let statusBadge = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
-    if (pay.status && pay.status.toLowerCase() === "paid") {
-      statusBadge = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-    } else if (pay.status && pay.status.toLowerCase() === "rejected") {
-      statusBadge = "bg-rose-500/10 text-rose-400 border-rose-500/20";
-    }
+  historyData.forEach((item, index) => {
+    const reportDate = item.date || item.created_at || "N/A";
+    const category = item.category || "General";
+    const totalAccounts = item.total_accounts || item.count || 0;
+    const status = item.status || "Completed";
 
     const tr = document.createElement("tr");
     tr.className =
       "hover:bg-slate-800/40 transition-colors border-b border-slate-700/30";
     tr.innerHTML = `
-      <td class="p-3.5 text-xs text-slate-400 font-mono">#${pay.id || index + 1}</td>
-      <td class="p-3.5 text-xs text-slate-200 font-medium">${pay.good_accounts || pay.good_count || "-"}</td>
-      <td class="p-3.5 text-xs font-semibold text-emerald-400">৳${Number(pay.amount || pay.total_amount || 0).toFixed(2)}</td>
-      <td class="p-3.5 text-xs text-slate-300 uppercase">${pay.method || pay.payment_method || "bKash"}</td>
-      <td class="p-3.5 text-xs">
-        <span class="px-2.5 py-1 text-xs rounded-lg border uppercase tracking-wider font-bold ${statusBadge}">
-          ${pay.status || "Pending"}
+      <td class="p-4 text-xs text-slate-300 font-mono">${reportDate}</td>
+      <td class="p-4 text-xs text-slate-200 font-medium uppercase">${category}</td>
+      <td class="p-4 text-xs font-extrabold text-emerald-400">${totalAccounts} টি</td>
+      <td class="p-4 text-xs text-center">
+        <span class="px-2.5 py-1 text-[11px] rounded-lg border font-semibold bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+          ${status}
         </span>
       </td>
+      <td class="p-4 text-xs text-center">
+        <button onclick='openAccountDetailsModal(${JSON.stringify(item)})' class="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-300 rounded-lg font-semibold transition-colors flex items-center gap-1 mx-auto">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+          </svg>
+          View
+        </button>
+      </td>
     `;
-    paymentList.appendChild(tr);
+    historyList.appendChild(tr);
   });
+}
+
+// ================= মেটা এবং অন্যান্য ক্যাটাগরির জন্য ডায়নামিক মডাল ফাংশন =================
+function openAccountDetailsModal(item) {
+  const modal = document.getElementById("account-details-modal");
+  const modalTitle = document.getElementById("modal-title");
+  const modalSubtitle = document.getElementById("modal-subtitle");
+  const modalHeaderRow = document.getElementById("modal-header-row");
+  const modalList = document.getElementById("modal-accounts-list");
+
+  if (!modal) return;
+
+  const categoryName = (item.category || "").toLowerCase();
+  const isMeta = categoryName.includes("meta");
+
+  modalTitle.innerText = `${(item.category || "Category").toUpperCase()} - অ্যাকাউন্ট লিস্ট`;
+  modalSubtitle.innerText = `তারিখ: ${item.date || item.created_at || "N/A"}`;
+
+  // ক্যাটাগরি অনুযায়ী টেবিল হেডার পরিবর্তন করা
+  if (modalHeaderRow) {
+    if (isMeta) {
+      modalHeaderRow.innerHTML = `
+        <th class="p-3">ক্রমিক</th>
+        <th class="p-3">ইমেইল</th>
+        <th class="p-3">পাসওয়ার্ড</th>
+        <th class="p-3">ইউজারনেম</th>
+        <th class="p-3">অন্যান্য তথ্য (2FA / Cookies)</th>
+        <th class="p-3 text-center">স্ট্যাটাস</th>
+      `;
+    } else {
+      modalHeaderRow.innerHTML = `
+        <th class="p-3">ক্রমিক</th>
+        <th class="p-3">ইউজারনেম / ইমেইল / UID</th>
+        <th class="p-3">পাসওয়ার্ড</th>
+        <th class="p-3">অন্যান্য তথ্য (2FA / Cookies)</th>
+        <th class="p-3 text-center">স্ট্যাটাস</th>
+      `;
+    }
+  }
+
+  modalList.innerHTML = "";
+  const accounts = item.accounts || [];
+
+  if (accounts.length === 0) {
+    const colSpan = isMeta ? 6 : 5;
+    modalList.innerHTML = `<tr><td colspan="${colSpan}" class="p-4 text-center text-slate-500">এই তারিখে কোনো অ্যাকাউন্ট ডিটেইলস যুক্ত করা হয়নি</td></tr>`;
+  } else {
+    accounts.forEach((acc, idx) => {
+      const status = acc.status || "Active";
+      const extraInfo = acc.two_fa || acc.cookies || "N/A";
+      const password = acc.account_password || acc.password || "N/A";
+
+      const tr = document.createElement("tr");
+      tr.className = "hover:bg-slate-800/50 transition-colors";
+
+      if (isMeta) {
+        // মেটার জন্য: ইমেইল -> পাসওয়ার্ড -> ইউজারনেম
+        const email = acc.account_email || acc.email || "N/A";
+        const username = acc.account_username || acc.username || "N/A";
+        tr.innerHTML = `
+          <td class="p-3 font-mono text-slate-400">${idx + 1}</td>
+          <td class="p-3 text-slate-200 font-mono font-semibold">${email}</td>
+          <td class="p-3 text-slate-300 font-mono">${password}</td>
+          <td class="p-3 text-slate-300 font-mono">${username}</td>
+          <td class="p-3 text-indigo-300 font-mono max-w-[200px] truncate" title="${extraInfo}">${extraInfo}</td>
+          <td class="p-3 text-center">
+            <span class="px-2 py-0.5 text-[10px] rounded font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              ${status}
+            </span>
+          </td>
+        `;
+      } else {
+        // অন্যান্য ক্যাটাগরির জন্য স্বাভাবিক ফরম্যাট
+        const mainInfo =
+          acc.account_username || acc.account_email || acc.uid || "N/A";
+        tr.innerHTML = `
+          <td class="p-3 font-mono text-slate-400">${idx + 1}</td>
+          <td class="p-3 text-slate-200 font-mono font-semibold">${mainInfo}</td>
+          <td class="p-3 text-slate-300 font-mono">${password}</td>
+          <td class="p-3 text-indigo-300 font-mono max-w-[250px] truncate" title="${extraInfo}">${extraInfo}</td>
+          <td class="p-3 text-center">
+            <span class="px-2 py-0.5 text-[10px] rounded font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              ${status}
+            </span>
+          </td>
+        `;
+      }
+      modalList.appendChild(tr);
+    });
+  }
+
+  modal.classList.remove("hidden");
+}
+
+function closeAccountDetailsModal() {
+  const modal = document.getElementById("account-details-modal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
 }
