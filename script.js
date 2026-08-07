@@ -488,7 +488,6 @@ function updateStatsAndUI(reports = []) {
   }
 }
 
-// কাজ জমা দেওয়ার ফাংশন
 async function handleWorkSubmit(e) {
   e.preventDefault();
   const workTypeElem = document.getElementById("work-type");
@@ -496,8 +495,19 @@ async function handleWorkSubmit(e) {
 
   const work_name = workTypeElem.value;
 
+  // ব্রাউজার সেশন বা ইউজার অবজেক্ট থেকে নাম বের করার নিরাপদ পদ্ধতি (Fallback সহ)
+  let userFullName = "Unknown User";
+  if (currentUser) {
+    userFullName =
+      currentUser.full_name ||
+      currentUser.username ||
+      currentUser.email ||
+      "Unknown User";
+  }
+
   let payload = {
-    user_id: currentUser.id,
+    user_id: currentUser ? currentUser.id : null,
+    full_name: userFullName, // এখন এখানে নিশ্চিতভাবে নাম বা ফলব্যাক পাস হবে
     work_name,
     account_password: document.getElementById("work-pass")
       ? document.getElementById("work-pass").value
