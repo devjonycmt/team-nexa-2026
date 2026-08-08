@@ -281,7 +281,6 @@ async function loadUserData() {
     renderOnlinePaymentsHistory(userPayments || []);
     updateStatsAndUI(allUserReports);
 
-    // ================= এই অংশটুকু এখানে বসাবেন =================
     const groupedHistory = {};
     allUserReports.forEach((report) => {
       const dateStr = formatDateToYYYYMMDD(report.created_at);
@@ -298,18 +297,17 @@ async function loadUserData() {
         };
       }
       groupedHistory[key].total_accounts += 1;
-      groupedHistory[key].accounts.push(report); // সম্পূর্ণ রিপোর্ট অবজেক্ট সেভ করা হলো
+      groupedHistory[key].accounts.push(report);
     });
 
     renderDailyAccountHistoryTable(Object.values(groupedHistory));
-    // ========================================================
   } catch (error) {
     console.error("Error fetching user data:", error);
     updateStatsAndUI([]);
     renderDailyAccountHistoryTable([]);
   }
 }
-// ================= অনলাইন পেমেন্ট হিস্ট্রি রেন্ডারিং ফাংশন =================
+
 // ================= অনলাইন পেমেন্ট হিস্ট্রি রেন্ডারিং ফাংশন =================
 function renderOnlinePaymentsHistory(payments = []) {
   const paymentList = document.getElementById("payment-history-list");
@@ -335,7 +333,6 @@ function renderOnlinePaymentsHistory(payments = []) {
     const payDate = formatDateWithTime(pay.created_at || pay.date) || "N/A";
     const gateway = pay.gateway || pay.payment_method || "N/A";
 
-    // ট্রানজ্যাকশন আইডি অথবা প্রেরक নাম্বার দেখানোর লজিক
     const trxId =
       pay.transaction_id ||
       pay.trx_id ||
@@ -382,44 +379,65 @@ function renderOnlinePaymentsHistory(payments = []) {
     paymentList.appendChild(tr);
   });
 }
+
+// ================= আপডেটকৃত স্ট্যাটাস ও ইউআই ফাংশন =================
 function updateStatsAndUI(reports = []) {
   const safeReports = Array.isArray(reports) ? reports : [];
   const todayStr = formatDateToYYYYMMDD(new Date().toISOString());
 
-  let overallGood = 0;
-  let hasAnyGoodInputOverall = false;
-  let overallEarnings = 0;
+  // আজকের রিপোর্টগুলো ফিল্টার করা
+  const todayReports = safeReports.filter((r) => {
+    if (!r.created_at) return false;
+    return formatDateToYYYYMMDD(r.created_at) === todayStr;
+  });
 
-  safeReports.forEach((r) => {
-    if (
-      r.good_count !== null &&
-      r.good_count !== undefined &&
-      r.good_count !== "" &&
-      r.good_count !== "pending"
-    ) {
-      hasAnyGoodInputOverall = true;
-      const gCount = Number(r.good_count) || 0;
-      overallGood += gCount;
-      overallEarnings += gCount * calculateSlabRate(gCount, r.work_name);
+  let todaySubmissions = todayReports.length;
+  let todayGoodAccounts = 0;
+  let todayPending = 0;
+  let todayCancel = 0;
+  let todayIncome = 0;
+
+  todayReports.forEach((r) => {
+    const status = (r.status || "").toLowerCase();
+    const gCount = r.good_count;
+
+    if (gCount === "pending" || status === "pending") {
+      todayPending++;
+    } else if (status === "cancel" || status === "failed" || status === "rejected") {
+      todayCancel++;
+    } else {
+      const countNum = Number(gCount) || 1;
+      todayGoodAccounts += countNum;
+      todayIncome += countNum * calculateSlabRate(countNum, r.work_name);
     }
   });
+
+  // ড্যাশবোর্ড ওভারভিউ স্ট্যাটাস এলিমেন্ট আপডেট
+  if (document.getElementById("stat-today-submissions")) {
+    document.getElementById("stat-today-submissions").innerText = todaySubmissions;
+  }
+  if (document.getElementById("stat-good-accounts")) {
+    document.getElementById("stat-good-accounts").innerText = todayGoodAccounts;
+  }
+  if (document.getElementById("stat-today-pending")) {
+    document.getElementById("stat-today-pending").innerText = todayPending;
+  }
+  if (document.getElementById("stat-today-cancel")) {
+    document.getElementById("stat-today-cancel").innerText = todayCancel;
+  }
+  if (document.getElementById("stat-today-income")) {
+    document.getElementById("stat-today-income").innerText = `৳${todayIncome.toFixed(2)}`;
+  }
 
   const categories = ["instagram", "facebook", "meta_ai"];
 
   categories.forEach((cat) => {
-    // শুধুমাত্র আজকের রিপোর্টগুলো ফিল্টার করা হচ্ছে কার্ডের জন্য
-    const catTodayReports = safeReports.filter((r) => {
-      if (r.work_name !== cat || !r.created_at) return false;
-      return formatDateToYYYYMMDD(r.created_at) === todayStr;
-    });
-
-    // কার্ডে দেখানোর জন্য আজকের মোট অ্যাকাউন্ট সংখ্যা
+    const catTodayReports = todayReports.filter((r) => r.work_name === cat);
     const catTodayCount = catTodayReports.length;
 
     const prefix =
       cat === "instagram" ? "insta" : cat === "facebook" ? "fb" : "meta";
 
-    // কার্ডের নির্দিষ্ট এলিমেন্টে আজকের সংখ্যা বসানো
     if (document.getElementById(`cat-${prefix}-today`))
       document.getElementById(`cat-${prefix}-today`).innerText = catTodayCount;
 
@@ -438,23 +456,6 @@ function updateStatsAndUI(reports = []) {
         `৳${(catTodayCount * rate).toFixed(2)}`;
     }
   });
-
-  const todayCount = safeReports.filter((r) => {
-    if (!r.created_at) return false;
-    return formatDateToYYYYMMDD(r.created_at) === todayStr;
-  }).length;
-
-  if (document.getElementById("stat-today-submissions")) {
-    document.getElementById("stat-today-submissions").innerText = todayCount;
-  }
-  if (document.getElementById("stat-good-accounts")) {
-    document.getElementById("stat-good-accounts").innerText =
-      hasAnyGoodInputOverall ? overallGood : "N/A";
-  }
-  if (document.getElementById("stat-due-payment")) {
-    document.getElementById("stat-due-payment").innerText =
-      `৳${overallEarnings.toFixed(2)}`;
-  }
 
   const recentList = document.getElementById("recent-history-list");
   if (recentList) {
@@ -476,11 +477,10 @@ function updateStatsAndUI(reports = []) {
 
           const rowRate = calculateSlabRate(0, r.work_name);
 
-          // good_count বা স্ট্যাটাস ব্যাজ তৈরি (pending হলে লাল রঙ দেখাবে)
           let statusBadge =
-            r.good_count === "pending"
-              ? `<span style="color: #ff4d4d; font-weight: bold; background: rgba(255, 77, 77, 0.1); padding: 2px 8px; border-radius: 4px;">Pending</span>`
-              : `<span class="font-semibold text-slate-200">${r.good_count || "N/A"}</span>`;
+            r.good_count === "pending" || r.status === "pending"
+              ? `<span style="color: #f59e0b; font-weight: bold; background: rgba(245, 158, 11, 0.1); padding: 2px 8px; border-radius: 4px;">Pending</span>`
+              : `<span class="font-semibold text-emerald-400">${r.good_count || "N/A"}</span>`;
 
           return `
             <tr class="hover:bg-slate-800/50 transition-colors border-t border-slate-700/50">
@@ -532,7 +532,7 @@ async function handleWorkSubmit(e) {
     uid: "",
     cookies: "",
     account_stock: "stock",
-    good_count: "pending", // নতুন কাজ জমা দিলে good_count এ pending থাকবে
+    good_count: "pending",
     created_at: getBangladeshISOString(),
   };
 
@@ -958,7 +958,7 @@ function renderDailyAccountHistoryTable(historyData = []) {
     return;
   }
 
-  historyData.forEach((item, index) => {
+  historyData.forEach((item) => {
     const reportDate = item.date || item.created_at || "N/A";
     const category = item.category || "General";
     const totalAccounts = item.total_accounts || item.count || 0;
@@ -1006,7 +1006,6 @@ function openAccountDetailsModal(item) {
   modalTitle.innerText = `${(item.category || "Category").toUpperCase()} - অ্যাকাউন্ট লিস্ট`;
   modalSubtitle.innerText = `তারিখ: ${item.date || item.created_at || "N/A"}`;
 
-  // ক্যাটাগরি অনুযায়ী টেবিল হেডার পরিবর্তন করা
   if (modalHeaderRow) {
     if (isMeta) {
       modalHeaderRow.innerHTML = `
@@ -1044,7 +1043,6 @@ function openAccountDetailsModal(item) {
       tr.className = "hover:bg-slate-800/50 transition-colors";
 
       if (isMeta) {
-        // মেটার জন্য: ইমেইল -> পাসওয়ার্ড -> ইউজারনেম
         const email = acc.account_email || acc.email || "N/A";
         const username = acc.account_username || acc.username || "N/A";
         tr.innerHTML = `
@@ -1060,7 +1058,6 @@ function openAccountDetailsModal(item) {
           </td>
         `;
       } else {
-        // অন্যান্য ক্যাটাগরির জন্য স্বাভাবিক ফরম্যাট
         const mainInfo =
           acc.account_username || acc.account_email || acc.uid || "N/A";
         tr.innerHTML = `

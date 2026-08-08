@@ -283,102 +283,113 @@
         <!-- Content Area -->
         <main class="flex-1 p-4 sm:p-6 overflow-y-auto w-full">
           <!-- Tab 1: Overview -->
-          <div id="view-overview" class="dash-view space-y-6">
-            <h2 class="text-xl sm:text-2xl font-bold">কাজের সামারি</h2>
+       <div id="view-overview" class="dash-view space-y-6">
+    <h2 class="text-xl sm:text-2xl font-bold">Today Work Live History</h2>
 
-            <div
-              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
-            >
-              <div
-                class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700"
-              >
-                <p class="text-xs sm:text-sm text-slate-400 mb-1">
-                  আজকের মোট জমা
-                </p>
-                <h3
-                  id="stat-today-submissions"
-                  class="text-2xl sm:text-3xl font-extrabold text-white"
-                >
-                  0
-                </h3>
-              </div>
-              <div
-                class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700"
-              >
-                <p class="text-xs sm:text-sm text-slate-400 mb-1">
-                  মোট Valid/Good Account
-                </p>
-                <h3
-                  id="stat-good-accounts"
-                  class="text-2xl sm:text-3xl font-extrabold text-emerald-400"
-                >
-                  0
-                </h3>
-              </div>
-              <div
-                class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700 sm:col-span-2 lg:col-span-1"
-              >
-                <p class="text-xs sm:text-sm text-slate-400 mb-1">
-                  আনপেইড পাওনা (Due Payment)
-                </p>
-                <h3
-                  id="stat-due-payment"
-                  class="text-2xl sm:text-3xl font-extrabold text-indigo-400"
-                >
-                  ৳0.00
-                </h3>
-              </div>
-            </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <!-- আজকের মোট জমা -->
+        <div class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700">
+            <p class="text-xs sm:text-sm text-slate-400 mb-1">
+                Today Total Account
+            </p>
+            <h3 id="stat-today-submissions" class="text-2xl sm:text-3xl font-extrabold text-white">
+                0
+            </h3>
+        </div>
 
-            <!-- Payment Slab Rates info -->
-            <div
-              class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60 text-xs text-slate-400 space-y-1.5"
-            >
-              <p
-                style="
-                  background: linear-gradient(135deg, #0f172a, #1e293b);
-                  color: #ffffff;
-                  padding: 20px;
-                  border-radius: 12px;
-                  font-family:
-                    &quot;Segoe UI&quot;, Tahoma, Geneva, Verdana, sans-serif;
-                  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-                  line-height: 1.8;
-                  border: 1px solid #334155;
-                "
-              >
-                <strong
-                  style="
-                    font-size: 18px;
-                    color: #38bdf8;
-                    display: block;
-                    margin-bottom: 12px;
-                    border-bottom: 2px solid #0284c7;
-                    padding-bottom: 6px;
-                  "
-                  >💎 প্ল্যাটফর্ম অনুযায়ী পেমেন্ট রেট চার্ট:</strong
-                >
+        <!-- আজকের গুড অ্যাকাউন্ট -->
+        <div class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700">
+            <p class="text-xs sm:text-sm text-slate-400 mb-1">
+               Today Good Report
+            </p>
+            <h3 id="stat-good-accounts" class="text-2xl sm:text-3xl font-extrabold text-emerald-400">
+                0
+            </h3>
+        </div>
 
-                •
-                <span style="color: #f43f5e; font-weight: bold">Facebook:</span>
-                প্রতি অ্যাকাউন্ট বা কাজ
-                <span style="color: #4ade80; font-weight: bold">৳৭.০০</span>
-                টাকা<br />
-                •
-                <span style="color: #a855f7; font-weight: bold"
-                  >Instagram:</span
-                >
-                প্রতি অ্যাকাউন্ট বা কাজ
-                <span style="color: #4ade80; font-weight: bold">৳৪.০০</span>
-                টাকা<br />
-                •
-                <span style="color: #38bdf8; font-weight: bold">Meta AI:</span>
-                প্রতি অ্যাকাউন্ট বা কাজ
-                <span style="color: #4ade80; font-weight: bold">৳১.০০</span>
-                টাকা
-              </p>
-            </div>
-          </div>
+        <!-- আজকের পেন্ডিং অ্যাকাউন্ট -->
+        <div class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700">
+            <p class="text-xs sm:text-sm text-slate-400 mb-1">
+                Today Pending
+            </p>
+            <h3 id="stat-today-pending" class="text-2xl sm:text-3xl font-extrabold text-amber-400">
+                0
+            </h3>
+        </div>
+
+        <!-- আজকের ক্যানসেল অ্যাকাউন্ট -->
+        <div class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700">
+            <p class="text-xs sm:text-sm text-slate-400 mb-1">
+                Today Bad Report
+            </p>
+            <h3 id="stat-today-cancel" class="text-2xl sm:text-3xl font-extrabold text-rose-400">
+                0
+            </h3>
+        </div>
+
+        <!-- আজকের ইনকাম -->
+        <div class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700 sm:col-span-2 lg:col-span-2">
+            <p class="text-xs sm:text-sm text-slate-400 mb-1">
+              Today Your Dream Income
+            </p>
+            <h3 id="stat-today-income" class="text-2xl sm:text-3xl font-extrabold text-indigo-400">
+                ৳0.00
+            </h3>
+        </div>
+    </div>
+
+    <!-- Payment Slab Rates info -->
+    <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60 text-xs text-slate-400 space-y-1.5">
+        <p style="
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            line-height: 1.8;
+            border: 1px solid #334155;
+        ">
+            <strong style="
+                font-size: 18px;
+                color: #38bdf8;
+                display: block;
+                margin-bottom: 12px;
+                border-bottom: 2px solid #0284c7;
+                padding-bottom: 6px;
+            ">💎 Meta AI Account Rate:</strong>
+
+            • <span style="color: #4ade80; font-weight: bold">বেস রেট:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #38bdf8; font-weight: bold">৳১.০০</span> টাকা<br />
+            • <span style="color: #a855f7; font-weight: bold">১০০ বা তার বেশি:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #4ade80; font-weight: bold">৳১.২০</span> টাকা<br />
+            • <span style="color: #38bdf8; font-weight: bold">২০০ বা তার বেশি:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #4ade80; font-weight: bold">৳১.৫০</span> টাকা<br />
+            • <span style="color: #f43f5e; font-weight: bold">১০০০ বা তার বেশি:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #4ade80; font-weight: bold">৳২.০০</span> টাকা
+        </p>
+        <p style="
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            line-height: 1.8;
+            border: 1px solid #334155;
+        ">
+            <strong style="
+                font-size: 18px;
+                color: #38bdf8;
+                display: block;
+                margin-bottom: 12px;
+                border-bottom: 2px solid #0284c7;
+                padding-bottom: 6px;
+            ">💎 Instagram Account Rate:</strong>
+
+            • <span style="color: #4ade80; font-weight: bold">বেস রেট:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #38bdf8; font-weight: bold">৳4.০০</span> টাকা<br />
+            • <span style="color: #a855f7; font-weight: bold">১০০ বা তার বেশি:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #4ade80; font-weight: bold">৳4.২০</span> টাকা<br />
+            • <span style="color: #38bdf8; font-weight: bold">২০০ বা তার বেশি:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #4ade80; font-weight: bold">৳4.৫০</span> টাকা<br />
+            • <span style="color: #f43f5e; font-weight: bold">১০০০ বা তার বেশি:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #4ade80; font-weight: bold">৳5.০০</span> টাকা
+        </p>
+    </div>
+</div>
 
           <!-- Tab 2: Submit Work -->
           <div
