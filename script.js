@@ -380,13 +380,31 @@ function renderOnlinePaymentsHistory(payments = []) {
   });
 }
 
-// ================= আপডেটকৃত স্ট্যাটাস ও ইউআই ফাংশন =================
+// ================= আপডেটকৃত স্ট্যাটাস ও ইউআই ফাংশন (সেফটি চেকসহ) =================
 function updateStatsAndUI(reports = []) {
   const safeReports = Array.isArray(reports) ? reports : [];
+  
+  // ১. বর্তমান ইউজারের আইডি বা ইমেইল বিভিন্ন সম্ভাব্য জায়গা থেকে খোঁজা
+  const currentUserId = window.currentUserId || localStorage.getItem("user_id") || localStorage.getItem("uid") || (window.currentUser ? window.currentUser.id : null);
+  const currentUserEmail = window.currentUserEmail || localStorage.getItem("user_email") || (window.currentUser ? window.currentUser.email : null);
+
+  // ব্রাউজারের কনসোলে (F12 চেপে) দেখতে পাবেন আইডি ম্যাচ করছে কি না
+  console.log("Detected User ID:", currentUserId);
+  console.log("Detected User Email:", currentUserEmail);
+
+  // ২. ফিল্টারিং: যদি ইউজার আইডি বা ইমেইল না পাওয়া যায়, তবে সেফটির জন্য সব ডাটা দেখাবে (যাতে স্ক্রিন খালি না থাকে)
+  // যদি পাওয়া যায়, তবে শুধুমাত্র সেই ইউজারের ডাটা ফিল্টার করবে।
+  const userReports = (!currentUserId && !currentUserEmail) ? safeReports : safeReports.filter((r) => {
+    return (
+      (currentUserId && (r.user_id == currentUserId || r.uid == currentUserId || r.userId == currentUserId)) || 
+      (currentUserEmail && (r.email === currentUserEmail || r.user_email === currentUserEmail))
+    );
+  });
+
   const todayStr = formatDateToYYYYMMDD(new Date().toISOString());
 
-  // আজকের রিপোর্টগুলো ফিল্টার করা
-  const todayReports = safeReports.filter((r) => {
+  // ৩. বর্তমান ইউজারের আজকের রিপোর্টগুলো ফিল্টার করা
+  const todayReports = userReports.filter((r) => {
     if (!r.created_at) return false;
     return formatDateToYYYYMMDD(r.created_at) === todayStr;
   });
@@ -399,14 +417,14 @@ function updateStatsAndUI(reports = []) {
 
   todayReports.forEach((r) => {
     const status = (r.status || "").toLowerCase();
-    const gCount = r.good_count;
+    const gCount = (r.good_count || "").toString().toLowerCase();
 
     if (gCount === "pending" || status === "pending") {
       todayPending++;
-    } else if (status === "cancel" || status === "failed" || status === "rejected") {
+    } else if (gCount === "cancel" || status === "cancel" || status === "failed" || status === "rejected") {
       todayCancel++;
-    } else {
-      const countNum = Number(gCount) || 1;
+    } else if (gCount === "success" || status === "success" || !isNaN(Number(gCount))) {
+      const countNum = !isNaN(Number(gCount)) ? Number(gCount) : 1;
       todayGoodAccounts += countNum;
       todayIncome += countNum * calculateSlabRate(countNum, r.work_name);
     }
@@ -459,10 +477,10 @@ function updateStatsAndUI(reports = []) {
 
   const recentList = document.getElementById("recent-history-list");
   if (recentList) {
-    if (safeReports.length === 0) {
+    if (userReports.length === 0) {
       recentList.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">এখনো কোনো কাজ জমা দেওয়া হয়নি</td></tr>`;
     } else {
-      recentList.innerHTML = safeReports
+      recentList.innerHTML = userReports
         .slice(0, 5)
         .map((r) => {
           let accountDisplay =
@@ -477,10 +495,18 @@ function updateStatsAndUI(reports = []) {
 
           const rowRate = calculateSlabRate(0, r.work_name);
 
-          let statusBadge =
-            r.good_count === "pending" || r.status === "pending"
-              ? `<span style="color: #f59e0b; font-weight: bold; background: rgba(245, 158, 11, 0.1); padding: 2px 8px; border-radius: 4px;">Pending</span>`
-              : `<span class="font-semibold text-emerald-400">${r.good_count || "N/A"}</span>`;
+          let gCountVal = (r.good_count || "").toString().toLowerCase();
+          let statusBadge = "";
+
+          if (gCountVal === "pending" || r.status === "pending") {
+            statusBadge = `<span style="color: #f59e0b; font-weight: bold; background: rgba(245, 158, 11, 0.1); padding: 2px 8px; border-radius: 4px;">Pending</span>`;
+          } else if (gCountVal === "cancel" || r.status === "cancel") {
+            statusBadge = `<span style="color: #f43f5e; font-weight: bold; background: rgba(244, 63, 94, 0.1); padding: 2px 8px; border-radius: 4px;">Cancel</span>`;
+          } else if (gCountVal === "success" || r.status === "success") {
+            statusBadge = `<span style="color: #10b981; font-weight: bold; background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 4px;">Success</span>`;
+          } else {
+            statusBadge = `<span class="font-semibold text-emerald-400">${r.good_count || "N/A"}</span>`;
+          }
 
           return `
             <tr class="hover:bg-slate-800/50 transition-colors border-t border-slate-700/50">
@@ -502,7 +528,6 @@ function updateStatsAndUI(reports = []) {
     }
   }
 }
-
 async function handleWorkSubmit(e) {
   e.preventDefault();
   const workTypeElem = document.getElementById("work-type");
