@@ -310,6 +310,7 @@ async function loadUserData() {
   }
 }
 // ================= অনলাইন পেমেন্ট হিস্ট্রি রেন্ডারিং ফাংশন =================
+// ================= অনলাইন পেমেন্ট হিস্ট্রি রেন্ডারিং ফাংশন =================
 function renderOnlinePaymentsHistory(payments = []) {
   const paymentList = document.getElementById("payment-history-list");
   if (!paymentList) return;
@@ -333,15 +334,21 @@ function renderOnlinePaymentsHistory(payments = []) {
 
     const payDate = formatDateWithTime(pay.created_at || pay.date) || "N/A";
     const gateway = pay.gateway || pay.payment_method || "N/A";
-    const trxId = pay.transaction_id || pay.trx_id || "N/A";
+
+    // ট্রানজ্যাকশন আইডি অথবা প্রেরक নাম্বার দেখানোর লজিক
+    const trxId =
+      pay.transaction_id ||
+      pay.trx_id ||
+      pay.sender_number ||
+      currentUser.payment_number ||
+      "N/A";
+
     const workDetails =
       pay.work_details || pay.description || pay.note || "N/A";
 
-    // কাজের বিবরণী থেকে সংখ্যা (Count) বের করা
     let match = workDetails.match(/\d+/);
     let countNum = match ? match[0] : pay.good_account_count || pay.count || "";
 
-    // অ্যাকাউন্ট স্ট্যাটাসে সুন্দর ফরম্যাটে সংখ্যাসহ দেখানো
     let accountStatusDisplay = countNum
       ? `${countNum} গুড অ্যাকাউন্ট`
       : pay.account_status || "Good Account";
@@ -355,7 +362,7 @@ function renderOnlinePaymentsHistory(payments = []) {
     tr.innerHTML = `
       <td class="p-4 text-xs text-slate-300 font-mono">${payDate}</td>
       <td class="p-4 text-xs text-slate-200 uppercase font-medium">${gateway}</td>
-      <td class="p-4 text-xs text-slate-400 font-mono">${trxId}</td>
+      <td class="p-4 text-xs text-indigo-400 font-mono font-semibold">${trxId}</td>
       <td class="p-4 text-xs text-slate-300">${workDetails}</td>
       <td class="p-4 text-xs">
         <span class="px-3 py-1.5 text-xs rounded-lg border font-semibold bg-emerald-500/10 text-emerald-400 border-emerald-500/30 flex items-center gap-1.5 w-max shadow-sm">
@@ -387,7 +394,8 @@ function updateStatsAndUI(reports = []) {
     if (
       r.good_count !== null &&
       r.good_count !== undefined &&
-      r.good_count !== ""
+      r.good_count !== "" &&
+      r.good_count !== "pending"
     ) {
       hasAnyGoodInputOverall = true;
       const gCount = Number(r.good_count) || 0;
@@ -451,7 +459,7 @@ function updateStatsAndUI(reports = []) {
   const recentList = document.getElementById("recent-history-list");
   if (recentList) {
     if (safeReports.length === 0) {
-      recentList.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">এখনো কোনো কাজ জমা দেওয়া হয়নি</td></tr>`;
+      recentList.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">এখনো কোনো কাজ জমা দেওয়া হয়নি</td></tr>`;
     } else {
       recentList.innerHTML = safeReports
         .slice(0, 5)
@@ -468,6 +476,12 @@ function updateStatsAndUI(reports = []) {
 
           const rowRate = calculateSlabRate(0, r.work_name);
 
+          // good_count বা স্ট্যাটাস ব্যাজ তৈরি (pending হলে লাল রঙ দেখাবে)
+          let statusBadge =
+            r.good_count === "pending"
+              ? `<span style="color: #ff4d4d; font-weight: bold; background: rgba(255, 77, 77, 0.1); padding: 2px 8px; border-radius: 4px;">Pending</span>`
+              : `<span class="font-semibold text-slate-200">${r.good_count || "N/A"}</span>`;
+
           return `
             <tr class="hover:bg-slate-800/50 transition-colors border-t border-slate-700/50">
               <td class="p-3.5 font-semibold">
@@ -480,6 +494,7 @@ function updateStatsAndUI(reports = []) {
               </td>
               <td class="p-3.5 text-right font-semibold text-emerald-400">৳${rowRate.toFixed(2)}</td>
               <td class="p-3.5 text-center text-xs text-slate-400 font-mono">${formatDateWithTime(r.created_at)}</td>
+              <td class="p-3.5 text-center">${statusBadge}</td>
             </tr>
           `;
         })
@@ -495,7 +510,6 @@ async function handleWorkSubmit(e) {
 
   const work_name = workTypeElem.value;
 
-  // ব্রাউজার সেশন বা ইউজার অবজেক্ট থেকে নাম বের করার নিরাপদ পদ্ধতি (Fallback সহ)
   let userFullName = "Unknown User";
   if (currentUser) {
     userFullName =
@@ -507,7 +521,7 @@ async function handleWorkSubmit(e) {
 
   let payload = {
     user_id: currentUser ? currentUser.id : null,
-    full_name: userFullName, // এখন এখানে নিশ্চিতভাবে নাম বা ফলব্যাক পাস হবে
+    full_name: userFullName,
     work_name,
     account_password: document.getElementById("work-pass")
       ? document.getElementById("work-pass").value
@@ -517,6 +531,8 @@ async function handleWorkSubmit(e) {
     two_fa: "",
     uid: "",
     cookies: "",
+    account_stock: "stock",
+    good_count: "pending", // নতুন কাজ জমা দিলে good_count এ pending থাকবে
     created_at: getBangladeshISOString(),
   };
 
