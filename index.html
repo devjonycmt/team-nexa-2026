@@ -817,7 +817,6 @@
                       <th class="p-4">Good</th>
                       <th class="p-4">Cancel</th>
                       <th class="p-4">Pending</th>
-                      
                     </tr>
                   </thead>
                   <tbody
@@ -1403,107 +1402,6 @@
       </div>
     </div>
 
-    <!-- ================= FLOATING GENERATOR ICON (BOTTOM-RIGHT) ================= -->
-    <div class="fixed bottom-6 right-6 z-40 group">
-      <button
-        onclick="openMetaGeneratorModal()"
-        class="relative bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white p-4 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 transform hover:scale-110 focus:outline-none border border-indigo-400/30"
-      >
-        <!-- Lightning Icon SVG -->
-        <svg
-          class="w-6 h-6 animate-pulse"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M13 10V3L4 14h7v7l9-11h-7z"
-          ></path>
-        </svg>
-
-        <!-- Notification Dot -->
-        <span
-          class="absolute top-0 right-0 h-3 w-3 bg-amber-400 rounded-full ring-2 ring-slate-900 animate-ping"
-        ></span>
-        <span
-          class="absolute top-0 right-0 h-3 w-3 bg-amber-400 rounded-full ring-2 ring-slate-900"
-        ></span>
-      </button>
-
-      <!-- Tooltip -->
-      <div
-        class="absolute right-16 bottom-2 bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap border border-slate-700"
-      >
-        ⚡ মেটা অ্যাকাউন্ট নিন
-      </div>
-    </div>
-
-    <!-- ================= PASSWORD PROMPT MODAL ================= -->
-    <div
-      id="password-prompt-modal"
-      class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-50"
-    >
-      <div
-        class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-sm p-6 space-y-4 shadow-2xl"
-      >
-        <div
-          class="flex justify-between items-center border-b border-slate-700 pb-3"
-        >
-          <h3 class="text-base font-bold text-white">সিক্রেট পাসওয়ার্ড দিন</h3>
-          <button
-            onclick="closePasswordPrompt()"
-            class="text-slate-400 hover:text-white font-bold text-lg"
-          >
-            ✕
-          </button>
-        </div>
-        <div class="space-y-3">
-          <input
-            type="password"
-            id="generator-secret-pass"
-            placeholder="জেনারেটর পাসওয়ার্ড লিখুন"
-            class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500"
-          />
-          <button
-            onclick="verifyGeneratorPassword()"
-            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition text-sm"
-          >
-            সাবমিট করুন
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= META ACCOUNT GENERATOR MODAL ================= -->
-    <div
-      id="meta-generator-modal"
-      class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-50"
-    >
-      <div
-        class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-md p-6 space-y-4 shadow-2xl"
-      >
-        <div
-          class="flex justify-between items-center border-b border-slate-700 pb-3"
-        >
-          <h3 class="text-base font-bold text-white">
-            মেটা অ্যাকাউন্ট জেনারেটর
-          </h3>
-          <button
-            onclick="closeMetaGeneratorModal()"
-            class="text-slate-400 hover:text-white font-bold text-lg"
-          >
-            ✕
-          </button>
-        </div>
-
-        <!-- Dynamic Content Area -->
-        <div id="generator-content-area"></div>
-      </div>
-    </div>
     <!-- Cancel Details Modal -->
     <div
       id="cancel-details-modal"
