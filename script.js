@@ -277,34 +277,16 @@ async function loadUserData() {
       console.error("Online payments load error:", paymentsError.message);
     }
 
-    // ৩. পেমেন্ট হিস্ট্রি টেবিল রেন্ডার করা এবং স্ট্যাটাস আপডেট করা
+    // ৩. পেমেন্ট হিস্ট্রি এবং ড্যাশবোর্ড স্ট্যাটাস আপডেট করা
     renderOnlinePaymentsHistory(userPayments || []);
     updateStatsAndUI(allUserReports);
 
-    const groupedHistory = {};
-    allUserReports.forEach((report) => {
-      const dateStr = formatDateToYYYYMMDD(report.created_at);
-      const category = report.work_name || "general";
-      const key = `${dateStr}_${category}`;
-
-      if (!groupedHistory[key]) {
-        groupedHistory[key] = {
-          date: dateStr,
-          category: category,
-          total_accounts: 0,
-          status: "Completed",
-          accounts: [],
-        };
-      }
-      groupedHistory[key].total_accounts += 1;
-      groupedHistory[key].accounts.push(report);
-    });
-
-    renderDailyAccountHistoryTable(Object.values(groupedHistory));
+    // ৪. তারিখভিত্তিক একাউন্ট হিস্ট্রি টেবিল রেন্ডার করা (নতুন ফাংশন কল)
+    renderDateWiseAccountHistory(allUserReports);
   } catch (error) {
     console.error("Error fetching user data:", error);
     updateStatsAndUI([]);
-    renderDailyAccountHistoryTable([]);
+    renderDateWiseAccountHistory([]);
   }
 }
 
@@ -383,10 +365,17 @@ function renderOnlinePaymentsHistory(payments = []) {
 // ================= আপডেটকৃত স্ট্যাটাস ও ইউআই ফাংশন (সেফটি চেকসহ) =================
 function updateStatsAndUI(reports = []) {
   const safeReports = Array.isArray(reports) ? reports : [];
-  
+
   // ১. বর্তমান ইউজারের আইডি বা ইমেইল বিভিন্ন সম্ভাব্য জায়গা থেকে খোঁজা
-  const currentUserId = window.currentUserId || localStorage.getItem("user_id") || localStorage.getItem("uid") || (window.currentUser ? window.currentUser.id : null);
-  const currentUserEmail = window.currentUserEmail || localStorage.getItem("user_email") || (window.currentUser ? window.currentUser.email : null);
+  const currentUserId =
+    window.currentUserId ||
+    localStorage.getItem("user_id") ||
+    localStorage.getItem("uid") ||
+    (window.currentUser ? window.currentUser.id : null);
+  const currentUserEmail =
+    window.currentUserEmail ||
+    localStorage.getItem("user_email") ||
+    (window.currentUser ? window.currentUser.email : null);
 
   // ব্রাউজারের কনসোলে (F12 চেপে) দেখতে পাবেন আইডি ম্যাচ করছে কি না
   console.log("Detected User ID:", currentUserId);
@@ -394,12 +383,20 @@ function updateStatsAndUI(reports = []) {
 
   // ২. ফিল্টারিং: যদি ইউজার আইডি বা ইমেইল না পাওয়া যায়, তবে সেফটির জন্য সব ডাটা দেখাবে (যাতে স্ক্রিন খালি না থাকে)
   // যদি পাওয়া যায়, তবে শুধুমাত্র সেই ইউজারের ডাটা ফিল্টার করবে।
-  const userReports = (!currentUserId && !currentUserEmail) ? safeReports : safeReports.filter((r) => {
-    return (
-      (currentUserId && (r.user_id == currentUserId || r.uid == currentUserId || r.userId == currentUserId)) || 
-      (currentUserEmail && (r.email === currentUserEmail || r.user_email === currentUserEmail))
-    );
-  });
+  const userReports =
+    !currentUserId && !currentUserEmail
+      ? safeReports
+      : safeReports.filter((r) => {
+          return (
+            (currentUserId &&
+              (r.user_id == currentUserId ||
+                r.uid == currentUserId ||
+                r.userId == currentUserId)) ||
+            (currentUserEmail &&
+              (r.email === currentUserEmail ||
+                r.user_email === currentUserEmail))
+          );
+        });
 
   const todayStr = formatDateToYYYYMMDD(new Date().toISOString());
 
@@ -421,9 +418,18 @@ function updateStatsAndUI(reports = []) {
 
     if (gCount === "pending" || status === "pending") {
       todayPending++;
-    } else if (gCount === "cancel" || status === "cancel" || status === "failed" || status === "rejected") {
+    } else if (
+      gCount === "cancel" ||
+      status === "cancel" ||
+      status === "failed" ||
+      status === "rejected"
+    ) {
       todayCancel++;
-    } else if (gCount === "success" || status === "success" || !isNaN(Number(gCount))) {
+    } else if (
+      gCount === "success" ||
+      status === "success" ||
+      !isNaN(Number(gCount))
+    ) {
       const countNum = !isNaN(Number(gCount)) ? Number(gCount) : 1;
       todayGoodAccounts += countNum;
       todayIncome += countNum * calculateSlabRate(countNum, r.work_name);
@@ -432,7 +438,8 @@ function updateStatsAndUI(reports = []) {
 
   // ড্যাশবোর্ড ওভারভিউ স্ট্যাটাস এলিমেন্ট আপডেট
   if (document.getElementById("stat-today-submissions")) {
-    document.getElementById("stat-today-submissions").innerText = todaySubmissions;
+    document.getElementById("stat-today-submissions").innerText =
+      todaySubmissions;
   }
   if (document.getElementById("stat-good-accounts")) {
     document.getElementById("stat-good-accounts").innerText = todayGoodAccounts;
@@ -444,7 +451,8 @@ function updateStatsAndUI(reports = []) {
     document.getElementById("stat-today-cancel").innerText = todayCancel;
   }
   if (document.getElementById("stat-today-income")) {
-    document.getElementById("stat-today-income").innerText = `৳${todayIncome.toFixed(2)}`;
+    document.getElementById("stat-today-income").innerText =
+      `৳${todayIncome.toFixed(2)}`;
   }
 
   const categories = ["instagram", "facebook", "meta_ai"];
@@ -1106,6 +1114,230 @@ function openAccountDetailsModal(item) {
 
 function closeAccountDetailsModal() {
   const modal = document.getElementById("account-details-modal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+}
+
+// ================= তারিখভিত্তিক একাউন্ট হিস্ট্রি রেন্ডার ফাংশন (পেমেন্ট স্ট্যাটাস ছাড়া) =================
+function renderDateWiseAccountHistory(reports = []) {
+  const safeReports = Array.isArray(reports) ? reports : [];
+
+  const currentUserId =
+    window.currentUserId ||
+    localStorage.getItem("user_id") ||
+    localStorage.getItem("uid") ||
+    (window.currentUser ? window.currentUser.id : null);
+  const currentUserEmail =
+    window.currentUserEmail ||
+    localStorage.getItem("user_email") ||
+    (window.currentUser ? window.currentUser.email : null);
+
+  const userReports =
+    !currentUserId && !currentUserEmail
+      ? safeReports
+      : safeReports.filter((r) => {
+          return (
+            (currentUserId &&
+              (r.user_id == currentUserId ||
+                r.uid == currentUserId ||
+                r.userId == currentUserId)) ||
+            (currentUserEmail &&
+              (r.email === currentUserEmail ||
+                r.user_email === currentUserEmail))
+          );
+        });
+
+  const groupedData = {};
+
+  userReports.forEach((r) => {
+    if (!r.created_at) return;
+    const dateStr = formatDateToYYYYMMDD(r.created_at);
+    const category = (r.work_name || "unknown").toLowerCase();
+
+    const key = `${dateStr}_${category}`;
+
+    if (!groupedData[key]) {
+      groupedData[key] = {
+        date: dateStr,
+        category: r.work_name || category,
+        total: 0,
+        good: 0,
+        cancel: 0,
+        pending: 0,
+        goodReports: [],
+        cancelReports: [],
+      };
+    }
+
+    groupedData[key].total += 1;
+
+    const gCount = (r.good_count || "").toString().toLowerCase();
+    const status = (r.status || "").toString().toLowerCase();
+
+    if (gCount === "pending" || status === "pending") {
+      groupedData[key].pending += 1;
+    } else if (
+      gCount === "cancel" ||
+      status === "cancel" ||
+      status === "failed" ||
+      status === "rejected"
+    ) {
+      groupedData[key].cancel += 1;
+      groupedData[key].cancelReports.push(r);
+    } else {
+      groupedData[key].good += 1;
+      groupedData[key].goodReports.push(r);
+    }
+  });
+
+  const tableBody = document.getElementById("daily-account-history-list");
+  if (!tableBody) return;
+
+  const keys = Object.keys(groupedData).sort().reverse();
+
+  if (keys.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 text-xs">কোনো হিস্ট্রি পাওয়া যায়নি</td></tr>`;
+    return;
+  }
+
+  tableBody.innerHTML = keys
+    .map((key) => {
+      const item = groupedData[key];
+
+      let badgeClass = "bg-purple-500/10 text-purple-400 border-purple-500/20";
+      if (item.category === "facebook")
+        badgeClass = "bg-blue-500/10 text-blue-400 border-blue-500/20";
+      if (item.category === "instagram")
+        badgeClass = "bg-pink-500/10 text-pink-400 border-pink-500/20";
+
+      const goodDisplay =
+        item.good > 0
+          ? `<button onclick='openGoodDetailsModal(${JSON.stringify(item)})' class="font-bold text-emerald-500 hover:text-emerald-400 underline cursor-pointer bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 transition">${item.good} টি</button>`
+          : `<span class="font-semibold text-emerald-500/70">0</span>`;
+
+      const cancelDisplay =
+        item.cancel > 0
+          ? `<button onclick='openCancelDetailsModal(${JSON.stringify(item)})' class="font-bold text-rose-500 hover:text-rose-400 underline cursor-pointer bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20 transition">${item.cancel} টি</button>`
+          : `<span class="font-semibold text-rose-500/70">0</span>`;
+
+      return `
+      <tr class="hover:bg-slate-800/50 transition-colors border-t border-slate-700/50">
+        <td class="p-4 font-mono text-slate-300">${item.date}</td>
+        <td class="p-4 font-semibold">
+          <span class="px-2.5 py-1 text-xs rounded-lg border uppercase tracking-wider ${badgeClass}">
+            ${item.category.replace("_", " ")}
+          </span>
+        </td>
+        <td class="p-4 font-bold text-emerald-400">${item.total} টি</td>
+        <td class="p-4 font-semibold">${goodDisplay}</td>
+        <td class="p-4 font-semibold">${cancelDisplay}</td>
+        <td class="p-4 font-semibold text-amber-500">${item.pending}</td>
+      </tr>
+    `;
+    })
+    .join("");
+}
+
+// ================= গুড ডিটেইলস মডাল হ্যান্ডলার =================
+function openGoodDetailsModal(item) {
+  const modal = document.getElementById("good-details-modal");
+  const title = document.getElementById("good-modal-title");
+  const subtitle = document.getElementById("good-modal-subtitle");
+  const list = document.getElementById("good-modal-accounts-list");
+
+  if (!modal) return;
+
+  title.innerText = `${(item.category || "Category").toUpperCase()} - গুড অ্যাকাউন্টস`;
+  subtitle.innerText = `তারিখ: ${item.date} | মোট গুড: ${item.good} টি`;
+
+  list.innerHTML = "";
+  const goodReports = item.goodReports || [];
+
+  if (goodReports.length === 0) {
+    list.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500 text-xs">কোনো গুড রিপোর্ট পাওয়া যায়নি</td></tr>`;
+  } else {
+    goodReports.forEach((acc, idx) => {
+      const accountDisplay =
+        acc.account_username || acc.account_email || acc.uid || "N/A";
+      const password = acc.account_password || acc.password || "N/A";
+      const extraInfo = acc.two_fa || acc.cookies || "N/A";
+
+      const tr = document.createElement("tr");
+      tr.className =
+        "hover:bg-slate-800/50 transition-colors border-b border-slate-800/40";
+      tr.innerHTML = `
+        <td class="p-3 font-mono text-slate-400">${idx + 1}</td>
+        <td class="p-3 text-slate-200 font-mono font-semibold">${accountDisplay}</td>
+        <td class="p-3 text-slate-300 font-mono">${password}</td>
+        <td class="p-3 text-indigo-300 font-mono max-w-[250px] truncate" title="${extraInfo}">${extraInfo}</td>
+        <td class="p-3 text-center">
+          <span class="px-2.5 py-1 text-[11px] rounded-lg font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+            Good / Success
+          </span>
+        </td>
+      `;
+      list.appendChild(tr);
+    });
+  }
+
+  modal.classList.remove("hidden");
+}
+
+function closeGoodModal() {
+  const modal = document.getElementById("good-details-modal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+}
+
+// ================= ক্যানসেল ডিটেইলস মডাল হ্যান্ডলার =================
+function openCancelDetailsModal(item) {
+  const modal = document.getElementById("cancel-details-modal");
+  const title = document.getElementById("cancel-modal-title");
+  const subtitle = document.getElementById("cancel-modal-subtitle");
+  const list = document.getElementById("cancel-modal-accounts-list");
+
+  if (!modal) return;
+
+  title.innerText = `${(item.category || "Category").toUpperCase()} - ক্যানসেল অ্যাকাউন্টস`;
+  subtitle.innerText = `তারিখ: ${item.date} | মোট ক্যানসেল: ${item.cancel} টি`;
+
+  list.innerHTML = "";
+  const cancelReports = item.cancelReports || [];
+
+  if (cancelReports.length === 0) {
+    list.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500 text-xs">কোনো ক্যানসেল রিপোর্ট পাওয়া যায়নি</td></tr>`;
+  } else {
+    cancelReports.forEach((acc, idx) => {
+      const accountDisplay =
+        acc.account_username || acc.account_email || acc.uid || "N/A";
+      const password = acc.account_password || acc.password || "N/A";
+      const extraInfo = acc.two_fa || acc.cookies || "N/A";
+
+      const tr = document.createElement("tr");
+      tr.className =
+        "hover:bg-slate-800/50 transition-colors border-b border-slate-800/40";
+      tr.innerHTML = `
+        <td class="p-3 font-mono text-slate-400">${idx + 1}</td>
+        <td class="p-3 text-slate-200 font-mono font-semibold">${accountDisplay}</td>
+        <td class="p-3 text-slate-300 font-mono">${password}</td>
+        <td class="p-3 text-indigo-300 font-mono max-w-[250px] truncate" title="${extraInfo}">${extraInfo}</td>
+        <td class="p-3 text-center">
+          <span class="px-2.5 py-1 text-[11px] rounded-lg font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30">
+            Cancel
+          </span>
+        </td>
+      `;
+      list.appendChild(tr);
+    });
+  }
+
+  modal.classList.remove("hidden");
+}
+
+function closeCancelModal() {
+  const modal = document.getElementById("cancel-details-modal");
   if (modal) {
     modal.classList.add("hidden");
   }

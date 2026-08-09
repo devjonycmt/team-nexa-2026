@@ -283,113 +283,200 @@
         <!-- Content Area -->
         <main class="flex-1 p-4 sm:p-6 overflow-y-auto w-full">
           <!-- Tab 1: Overview -->
-       <div id="view-overview" class="dash-view space-y-6">
-    <h2 class="text-xl sm:text-2xl font-bold">Today Work Live History</h2>
+          <div id="view-overview" class="dash-view space-y-6">
+            <h2 class="text-xl sm:text-2xl font-bold">
+              Today Work Live History
+            </h2>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        <!-- আজকের মোট জমা -->
-        <div class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700">
-            <p class="text-xs sm:text-sm text-slate-400 mb-1">
-                Today Total Account
-            </p>
-            <h3 id="stat-today-submissions" class="text-2xl sm:text-3xl font-extrabold text-white">
-                0
-            </h3>
-        </div>
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+            >
+              <!-- আজকের মোট জমা -->
+              <div
+                class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700"
+              >
+                <p class="text-xs sm:text-sm text-slate-400 mb-1">
+                  Today Total Account
+                </p>
+                <h3
+                  id="stat-today-submissions"
+                  class="text-2xl sm:text-3xl font-extrabold text-white"
+                >
+                  0
+                </h3>
+              </div>
 
-        <!-- আজকের গুড অ্যাকাউন্ট -->
-        <div class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700">
-            <p class="text-xs sm:text-sm text-slate-400 mb-1">
-               Today Good Report
-            </p>
-            <h3 id="stat-good-accounts" class="text-2xl sm:text-3xl font-extrabold text-emerald-400">
-                0
-            </h3>
-        </div>
+              <!-- আজকের গুড অ্যাকাউন্ট -->
+              <div
+                class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700"
+              >
+                <p class="text-xs sm:text-sm text-slate-400 mb-1">
+                  Today Good Report
+                </p>
+                <h3
+                  id="stat-good-accounts"
+                  class="text-2xl sm:text-3xl font-extrabold text-emerald-400"
+                >
+                  0
+                </h3>
+              </div>
 
-        <!-- আজকের পেন্ডিং অ্যাকাউন্ট -->
-        <div class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700">
-            <p class="text-xs sm:text-sm text-slate-400 mb-1">
-                Today Pending
-            </p>
-            <h3 id="stat-today-pending" class="text-2xl sm:text-3xl font-extrabold text-amber-400">
-                0
-            </h3>
-        </div>
+              <!-- আজকের পেন্ডিং অ্যাকাউন্ট -->
+              <div
+                class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700"
+              >
+                <p class="text-xs sm:text-sm text-slate-400 mb-1">
+                  Today Pending
+                </p>
+                <h3
+                  id="stat-today-pending"
+                  class="text-2xl sm:text-3xl font-extrabold text-amber-400"
+                >
+                  0
+                </h3>
+              </div>
 
-        <!-- আজকের ক্যানসেল অ্যাকাউন্ট -->
-        <div class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700">
-            <p class="text-xs sm:text-sm text-slate-400 mb-1">
-                Today Bad Report
-            </p>
-            <h3 id="stat-today-cancel" class="text-2xl sm:text-3xl font-extrabold text-rose-400">
-                0
-            </h3>
-        </div>
+              <!-- আজকের ক্যানসেল অ্যাকাউন্ট -->
+              <div
+                class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700"
+              >
+                <p class="text-xs sm:text-sm text-slate-400 mb-1">
+                  Today Bad Report
+                </p>
+                <h3
+                  id="stat-today-cancel"
+                  class="text-2xl sm:text-3xl font-extrabold text-rose-400"
+                >
+                  0
+                </h3>
+              </div>
 
-        <!-- আজকের ইনকাম -->
-        <div class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700 sm:col-span-2 lg:col-span-2">
-            <p class="text-xs sm:text-sm text-slate-400 mb-1">
-              Today Your Dream Income
-            </p>
-            <h3 id="stat-today-income" class="text-2xl sm:text-3xl font-extrabold text-indigo-400">
-                ৳0.00
-            </h3>
-        </div>
-    </div>
+              <!-- আজকের ইনকাম -->
+              <div
+                class="bg-slate-800 p-5 sm:p-6 rounded-xl border border-slate-700 sm:col-span-2 lg:col-span-2"
+              >
+                <p class="text-xs sm:text-sm text-slate-400 mb-1">
+                  Today Your Dream Income
+                </p>
+                <h3
+                  id="stat-today-income"
+                  class="text-2xl sm:text-3xl font-extrabold text-indigo-400"
+                >
+                  ৳0.00
+                </h3>
+              </div>
+            </div>
 
-    <!-- Payment Slab Rates info -->
-    <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60 text-xs text-slate-400 space-y-1.5">
-        <p style="
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            color: #ffffff;
-            padding: 20px;
-            border-radius: 12px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            line-height: 1.8;
-            border: 1px solid #334155;
-        ">
-            <strong style="
-                font-size: 18px;
-                color: #38bdf8;
-                display: block;
-                margin-bottom: 12px;
-                border-bottom: 2px solid #0284c7;
-                padding-bottom: 6px;
-            ">💎 Meta AI Account Rate:</strong>
+            <!-- Payment Slab Rates info -->
+            <div
+              class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60 text-xs text-slate-400 space-y-1.5"
+            >
+              <p
+                style="
+                  background: linear-gradient(135deg, #0f172a, #1e293b);
+                  color: #ffffff;
+                  padding: 20px;
+                  border-radius: 12px;
+                  font-family:
+                    &quot;Segoe UI&quot;, Tahoma, Geneva, Verdana, sans-serif;
+                  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                  line-height: 1.8;
+                  border: 1px solid #334155;
+                "
+              >
+                <strong
+                  style="
+                    font-size: 18px;
+                    color: #38bdf8;
+                    display: block;
+                    margin-bottom: 12px;
+                    border-bottom: 2px solid #0284c7;
+                    padding-bottom: 6px;
+                  "
+                  >💎 Meta AI Account Rate:</strong
+                >
 
-            • <span style="color: #4ade80; font-weight: bold">বেস রেট:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #38bdf8; font-weight: bold">৳১.০০</span> টাকা<br />
-            • <span style="color: #a855f7; font-weight: bold">১০০ বা তার বেশি:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #4ade80; font-weight: bold">৳১.২০</span> টাকা<br />
-            • <span style="color: #38bdf8; font-weight: bold">২০০ বা তার বেশি:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #4ade80; font-weight: bold">৳১.৫০</span> টাকা<br />
-            • <span style="color: #f43f5e; font-weight: bold">১০০০ বা তার বেশি:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #4ade80; font-weight: bold">৳২.০০</span> টাকা
-        </p>
-        <p style="
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            color: #ffffff;
-            padding: 20px;
-            border-radius: 12px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            line-height: 1.8;
-            border: 1px solid #334155;
-        ">
-            <strong style="
-                font-size: 18px;
-                color: #38bdf8;
-                display: block;
-                margin-bottom: 12px;
-                border-bottom: 2px solid #0284c7;
-                padding-bottom: 6px;
-            ">💎 Instagram Account Rate:</strong>
+                •
+                <span style="color: #4ade80; font-weight: bold">বেস রেট:</span>
+                প্রতি গুড অ্যাকাউন্ট
+                <span style="color: #38bdf8; font-weight: bold">৳১.০০</span>
+                টাকা<br />
+                •
+                <span style="color: #a855f7; font-weight: bold"
+                  >১০০ বা তার বেশি:</span
+                >
+                প্রতি গুড অ্যাকাউন্ট
+                <span style="color: #4ade80; font-weight: bold">৳১.২০</span>
+                টাকা<br />
+                •
+                <span style="color: #38bdf8; font-weight: bold"
+                  >২০০ বা তার বেশি:</span
+                >
+                প্রতি গুড অ্যাকাউন্ট
+                <span style="color: #4ade80; font-weight: bold">৳১.৫০</span>
+                টাকা<br />
+                •
+                <span style="color: #f43f5e; font-weight: bold"
+                  >১০০০ বা তার বেশি:</span
+                >
+                প্রতি গুড অ্যাকাউন্ট
+                <span style="color: #4ade80; font-weight: bold">৳২.০০</span>
+                টাকা
+              </p>
+              <p
+                style="
+                  background: linear-gradient(135deg, #0f172a, #1e293b);
+                  color: #ffffff;
+                  padding: 20px;
+                  border-radius: 12px;
+                  font-family:
+                    &quot;Segoe UI&quot;, Tahoma, Geneva, Verdana, sans-serif;
+                  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                  line-height: 1.8;
+                  border: 1px solid #334155;
+                "
+              >
+                <strong
+                  style="
+                    font-size: 18px;
+                    color: #38bdf8;
+                    display: block;
+                    margin-bottom: 12px;
+                    border-bottom: 2px solid #0284c7;
+                    padding-bottom: 6px;
+                  "
+                  >💎 Instagram Account Rate:</strong
+                >
 
-            • <span style="color: #4ade80; font-weight: bold">বেস রেট:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #38bdf8; font-weight: bold">৳4.০০</span> টাকা<br />
-            • <span style="color: #a855f7; font-weight: bold">১০০ বা তার বেশি:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #4ade80; font-weight: bold">৳4.২০</span> টাকা<br />
-            • <span style="color: #38bdf8; font-weight: bold">২০০ বা তার বেশি:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #4ade80; font-weight: bold">৳4.৫০</span> টাকা<br />
-            • <span style="color: #f43f5e; font-weight: bold">১০০০ বা তার বেশি:</span> প্রতি গুড অ্যাকাউন্ট <span style="color: #4ade80; font-weight: bold">৳5.০০</span> টাকা
-        </p>
-    </div>
-</div>
+                •
+                <span style="color: #4ade80; font-weight: bold">বেস রেট:</span>
+                প্রতি গুড অ্যাকাউন্ট
+                <span style="color: #38bdf8; font-weight: bold">৳4.০০</span>
+                টাকা<br />
+                •
+                <span style="color: #a855f7; font-weight: bold"
+                  >১০০ বা তার বেশি:</span
+                >
+                প্রতি গুড অ্যাকাউন্ট
+                <span style="color: #4ade80; font-weight: bold">৳4.২০</span>
+                টাকা<br />
+                •
+                <span style="color: #38bdf8; font-weight: bold"
+                  >২০০ বা তার বেশি:</span
+                >
+                প্রতি গুড অ্যাকাউন্ট
+                <span style="color: #4ade80; font-weight: bold">৳4.৫০</span>
+                টাকা<br />
+                •
+                <span style="color: #f43f5e; font-weight: bold"
+                  >১০০০ বা তার বেশি:</span
+                >
+                প্রতি গুড অ্যাকাউন্ট
+                <span style="color: #4ade80; font-weight: bold">৳5.০০</span>
+                টাকা
+              </p>
+            </div>
+          </div>
 
           <!-- Tab 2: Submit Work -->
           <div
@@ -609,7 +696,7 @@
               📈 Daily Report & Work History
             </h2>
 
-            <!-- স্টাইলিশ গ্রেডিয়েন্ট কার্ড সেকশন (সঠিক লোগো ও ডিজাইন সহ) -->
+            <!-- স্টাইলিশ গ্রেডিয়েন্ট কার্ড সেকশন (সঠিক লোগো ও ডিজাইন সহ) -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <!-- Instagram Card -->
               <div
@@ -687,8 +774,7 @@
               </div>
             </div>
 
-            <!-- নিচে তারিখ অনুযায়ী অ্যাকাউন্ট হিস্ট্রি টেবিল (গুড/ব্যাড কলাম ছাড়া) -->
-            <!-- তারিখভিত্তিক অ্যাকাউন্ট হিস্ট্রি টেবিল -->
+            <!-- তারিখভিত্তিক অ্যাকাউন্ট হিস্ট্রি টেবিল (অতিরিক্ত কলাম বাদ দিয়ে পরিমার্জিত রূপ) -->
             <div
               class="bg-slate-800/80 backdrop-blur-md p-6 rounded-2xl border border-slate-700/60 shadow-2xl mt-8"
             >
@@ -712,8 +798,8 @@
                   তারিখভিত্তিক একাউন্ট হিস্ট্রি (Date-wise Account History)
                 </h3>
                 <p class="text-slate-400 text-xs mt-1">
-                  প্রতিদিন কোন তারিখে ক্যাটাগরি অনুযায়ী কয়টি অ্যাকাউন্ট তৈরি করা
-                  হয়েছে
+                  প্রতিদিন কোন তারিখে ক্যাটাগরি অনুযায়ী কয়টি অ্যাকাউন্ট তৈরি
+                  করা হয়েছে
                 </p>
               </div>
 
@@ -726,10 +812,12 @@
                   >
                     <tr>
                       <th class="p-4">তারিখ (Date)</th>
-                      <th class="p-4">ক্যাটাগরি</th>
-                      <th class="p-4">অ্যাকাউন্ট সংখ্যা</th>
-                      <th class="p-4 text-center">স্ট্যাটাস</th>
-                      <th class="p-4 text-center">অ্যাকশন (Action)</th>
+                      <th class="p-4">Category</th>
+                      <th class="p-4">Total Account</th>
+                      <th class="p-4">Good</th>
+                      <th class="p-4">Cancel</th>
+                      <th class="p-4">Pending</th>
+                      
                     </tr>
                   </thead>
                   <tbody
@@ -738,7 +826,7 @@
                   >
                     <tr>
                       <td
-                        colspan="5"
+                        colspan="4"
                         class="p-6 text-center text-slate-400 text-xs"
                       >
                         লোড হচ্ছে...
@@ -772,7 +860,7 @@
                       id="modal-subtitle"
                       class="text-xs text-slate-400 mt-0.5"
                     >
-                      তারিখ ও ক্যাটাগরি অনুযায়ী বিস্তারিত তথ্য
+                      তারিখ ও ক্যাটাগরি অনুযায়ী বিস্তারিত তথ্য এবং স্ট্যাটাস
                     </p>
                   </div>
                   <button
@@ -795,8 +883,7 @@
                   </button>
                 </div>
 
-                <!-- মডাল বডি (সকল ইনফো দেখানোর জন্য টেবিল) -->
-                <!-- মডাল বডি -->
+                <!-- মডাল বডি (অ্যাকাউন্ট ইনফো এবং স্ট্যাটাস দেখানোর জন্য টেবিল) -->
                 <div class="max-h-[60vh] overflow-x-auto overflow-y-auto">
                   <table
                     class="w-full text-left text-xs text-slate-300 min-w-[700px]"
@@ -805,7 +892,7 @@
                       class="bg-slate-800/80 text-slate-400 uppercase sticky top-0"
                     >
                       <tr id="modal-header-row">
-                        <!-- জাভাস্ক্রিপ্ট থেকে এখানে ডাইনামিক হেডার লোড হবে, অতিরিক্ত কোনো tr রাখবেন না -->
+                        <!-- জাভাস্ক্রিপ্ট থেকে এখানে ডাইনামিক হেডার লোড হবে (যেমন অ্যাকাউন্ট ইনফরমেশন ও স্ট্যাটাস) -->
                       </tr>
                     </thead>
                     <tbody
@@ -813,8 +900,8 @@
                       class="divide-y divide-slate-800"
                     >
                       <tr>
-                        <td colspan="6" class="p-4 text-center text-slate-500">
-                          কোনো ডেটা পাওয়া যায়নি
+                        <td colspan="5" class="p-4 text-center text-slate-500">
+                          কোনো ডেটা পাওয়া যায়নি
                         </td>
                       </tr>
                     </tbody>
@@ -1415,6 +1502,152 @@
 
         <!-- Dynamic Content Area -->
         <div id="generator-content-area"></div>
+      </div>
+    </div>
+    <!-- Cancel Details Modal -->
+    <div
+      id="cancel-details-modal"
+      class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+    >
+      <div
+        class="bg-slate-900 border border-slate-700 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+      >
+        <div
+          class="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50"
+        >
+          <div>
+            <h3 id="cancel-modal-title" class="text-lg font-bold text-white">
+              ক্যান্সেল অ্যাকাউন্ট রিপোর্ট
+            </h3>
+            <p id="cancel-modal-subtitle" class="text-xs text-slate-400 mt-0.5">
+              তারিখ ও ক্যাটাগরি বিবরণ
+            </p>
+          </div>
+          <button
+            onclick="closeCancelModal()"
+            class="text-slate-400 hover:text-white bg-slate-800 p-2 rounded-xl transition"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr
+                  class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-800/40"
+                >
+                  <th class="p-3">ক্রমিক</th>
+                  <th class="p-3">ইউজারনেম / ইমেইল / UID</th>
+                  <th class="p-3">পাসওয়ার্ড</th>
+                  <th class="p-3">অন্যান্য তথ্য (2FA / Cookies)</th>
+                  <th class="p-3 text-center">স্ট্যাটাস</th>
+                </tr>
+              </thead>
+              <tbody
+                id="cancel-modal-accounts-list"
+                class="divide-y divide-slate-800/50 text-sm"
+              >
+                <!-- ডাটা এখানে ডায়নামিকভাবে লোড হবে -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div
+          class="p-4 border-t border-slate-800 bg-slate-900/50 flex justify-end"
+        >
+          <button
+            onclick="closeCancelModal()"
+            class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold transition"
+          >
+            বন্ধ করুন
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Good Details Modal -->
+    <div
+      id="good-details-modal"
+      class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+    >
+      <div
+        class="bg-slate-900 border border-slate-700 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+      >
+        <div
+          class="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50"
+        >
+          <div>
+            <h3 id="good-modal-title" class="text-lg font-bold text-white">
+              গুড অ্যাকাউন্ট রিপোর্ট
+            </h3>
+            <p id="good-modal-subtitle" class="text-xs text-slate-400 mt-0.5">
+              তারিখ ও ক্যাটাগরি বিবরণ
+            </p>
+          </div>
+          <button
+            onclick="closeGoodModal()"
+            class="text-slate-400 hover:text-white bg-slate-800 p-2 rounded-xl transition"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr
+                  class="border-b border-slate-800 text-slate-400 text-xs uppercase bg-slate-800/40"
+                >
+                  <th class="p-3">ক্রমিক</th>
+                  <th class="p-3">ইউজারনেম / ইমেইল / UID</th>
+                  <th class="p-3">পাসওয়ার্ড</th>
+                  <th class="p-3">অন্যান্য তথ্য (2FA / Cookies)</th>
+                  <th class="p-3 text-center">স্ট্যাটাস</th>
+                </tr>
+              </thead>
+              <tbody
+                id="good-modal-accounts-list"
+                class="divide-y divide-slate-800/50 text-sm"
+              >
+                <!-- ডাটা এখানে ডায়নামিকভাবে লোড হবে -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div
+          class="p-4 border-t border-slate-800 bg-slate-900/50 flex justify-end"
+        >
+          <button
+            onclick="closeGoodModal()"
+            class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold transition"
+          >
+            বন্ধ করুন
+          </button>
+        </div>
       </div>
     </div>
     <!-- Custom JavaScript File -->
