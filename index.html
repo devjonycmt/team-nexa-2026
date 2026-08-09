@@ -478,7 +478,7 @@
             </div>
           </div>
 
-         <!-- Tab 2: Submit Work -->
+          <!-- Tab 2: Submit Work -->
           <div
             id="view-submit-work"
             class="dash-view hidden space-y-6 sm:space-y-8"
@@ -522,7 +522,6 @@
 
             <!-- Main Grid: Left Form, Right Table -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              
               <!-- Form Card (Left side) -->
               <div
                 class="lg:col-span-6 bg-slate-800/80 backdrop-blur-md p-4 sm:p-6 rounded-2xl border border-slate-700/60 shadow-2xl space-y-5"
@@ -549,48 +548,79 @@
                 </div>
 
                 <form onsubmit="handleWorkSubmit(event)" class="space-y-4">
-                  
-                  <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-                    
+                  <div
+                    class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start"
+                  >
                     <!-- Left Side: Platform Categories -->
                     <div class="md:col-span-5 space-y-2">
                       <label
                         class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2"
                         >প্ল্যাটফর্ম সিলেক্ট করুন</label
                       >
-                      
-                      <div class="flex flex-col gap-2.5" id="platform-card-group">
-                        
+
+                      <div
+                        class="flex flex-col gap-2.5"
+                        id="platform-card-group"
+                      >
                         <!-- Instagram Option -->
-                        <div onclick="selectPlatform('instagram', this)" 
-                             class="platform-option flex items-center justify-between p-3 rounded-xl border border-slate-700/60 bg-slate-900/90 hover:bg-slate-800 cursor-pointer transition-all">
+                        <div
+                          onclick="selectPlatform('instagram', this)"
+                          class="platform-option flex items-center justify-between p-3 rounded-xl border border-slate-700/60 bg-slate-900/90 hover:bg-slate-800 cursor-pointer transition-all"
+                        >
                           <div class="flex items-center gap-2.5">
-                            <span class="w-7 h-7 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center font-bold text-xs">@</span>
-                            <span class="text-xs sm:text-sm font-semibold text-slate-200">Instagram</span>
+                            <span
+                              class="w-7 h-7 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center font-bold text-xs"
+                              >@</span
+                            >
+                            <span
+                              class="text-xs sm:text-sm font-semibold text-slate-200"
+                              >Instagram</span
+                            >
                           </div>
-                          <div class="radio-indicator w-3.5 h-3.5 rounded-full border border-slate-600 flex items-center justify-center shrink-0"></div>
+                          <div
+                            class="radio-indicator w-3.5 h-3.5 rounded-full border border-slate-600 flex items-center justify-center shrink-0"
+                          ></div>
                         </div>
 
                         <!-- Facebook Option -->
-                        <div onclick="selectPlatform('facebook', this)" 
-                             class="platform-option flex items-center justify-between p-3 rounded-xl border border-slate-700/60 bg-slate-900/90 hover:bg-slate-800 cursor-pointer transition-all">
+                        <div
+                          onclick="selectPlatform('facebook', this)"
+                          class="platform-option flex items-center justify-between p-3 rounded-xl border border-slate-700/60 bg-slate-900/90 hover:bg-slate-800 cursor-pointer transition-all"
+                        >
                           <div class="flex items-center gap-2.5">
-                            <span class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xs">f</span>
-                            <span class="text-xs sm:text-sm font-semibold text-slate-200">Facebook</span>
+                            <span
+                              class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xs"
+                              >f</span
+                            >
+                            <span
+                              class="text-xs sm:text-sm font-semibold text-slate-200"
+                              >Facebook</span
+                            >
                           </div>
-                          <div class="radio-indicator w-3.5 h-3.5 rounded-full border border-slate-600 flex items-center justify-center shrink-0"></div>
+                          <div
+                            class="radio-indicator w-3.5 h-3.5 rounded-full border border-slate-600 flex items-center justify-center shrink-0"
+                          ></div>
                         </div>
 
                         <!-- Meta AI Option -->
-                        <div onclick="selectPlatform('meta_ai', this)" 
-                             class="platform-option flex items-center justify-between p-3 rounded-xl border border-slate-700/60 bg-slate-900/90 hover:bg-slate-800 cursor-pointer transition-all">
+                        <div
+                          onclick="selectPlatform('meta_ai', this)"
+                          class="platform-option flex items-center justify-between p-3 rounded-xl border border-slate-700/60 bg-slate-900/90 hover:bg-slate-800 cursor-pointer transition-all"
+                        >
                           <div class="flex items-center gap-2.5">
-                            <span class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-xs">✨</span>
-                            <span class="text-xs sm:text-sm font-semibold text-slate-200">Meta AI</span>
+                            <span
+                              class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-xs"
+                              >✨</span
+                            >
+                            <span
+                              class="text-xs sm:text-sm font-semibold text-slate-200"
+                              >Meta AI</span
+                            >
                           </div>
-                          <div class="radio-indicator w-3.5 h-3.5 rounded-full border border-slate-600 flex items-center justify-center shrink-0"></div>
+                          <div
+                            class="radio-indicator w-3.5 h-3.5 rounded-full border border-slate-600 flex items-center justify-center shrink-0"
+                          ></div>
                         </div>
-
                       </div>
 
                       <!-- Hidden select tag for backward JS compatibility -->
@@ -610,7 +640,10 @@
                     </div>
 
                     <!-- Right Side: Account Info Container (Dynamic Inputs & Submit Button) -->
-                    <div id="account-info-container" class="md:col-span-7 space-y-4 p-4 rounded-2xl border border-slate-700/60 bg-slate-900/40 transition-all duration-300">
+                    <div
+                      id="account-info-container"
+                      class="md:col-span-7 space-y-4 p-4 rounded-2xl border border-slate-700/60 bg-slate-900/40 transition-all duration-300"
+                    >
                       <label
                         class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2"
                         >অ্যাকাউন্ট তথ্য</label
@@ -641,9 +674,7 @@
                         রিপোর্ট জমা দিন
                       </button>
                     </div>
-
                   </div>
-
                 </form>
               </div>
 
@@ -703,7 +734,6 @@
                   </table>
                 </div>
               </div>
-
             </div>
           </div>
 
@@ -978,42 +1008,8 @@
             </div>
 
             <!-- Payment Table Container -->
-            <div
-              class="bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700/60 shadow-2xl overflow-hidden"
-            >
-              <div class="overflow-x-auto">
-                <table
-                  class="w-full text-left text-sm text-slate-300 min-w-[700px]"
-                >
-                  <thead
-                    class="bg-slate-900/80 text-xs font-semibold text-slate-400 uppercase tracking-wider"
-                  >
-                    <tr>
-                      <th class="p-4">Date</th>
-                      <th class="p-4">Payment Method</th>
-                      <th class="p-4">Transaction Number</th>
-                      <th class="p-4">Work Details</th>
-                      <th class="p-4">Good Report</th>
-                      <th class="p-4">Your Pay Amount</th>
-                      <th class="p-4 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody
-                    id="payment-history-list"
-                    class="divide-y divide-slate-700/50 bg-slate-900/30"
-                  >
-                    <!-- Dynamic JS Data Will Be Inserted Here -->
-                    <tr>
-                      <td
-                        colspan="5"
-                        class="p-6 text-center text-slate-400 text-xs"
-                      >
-                        লোড হচ্ছে...
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+            <div class="">
+              <div id="payment-history-list"></div>
             </div>
           </div>
 

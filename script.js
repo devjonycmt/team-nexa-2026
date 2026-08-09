@@ -298,70 +298,158 @@ function renderOnlinePaymentsHistory(payments = []) {
   paymentList.innerHTML = "";
 
   if (!payments || payments.length === 0) {
-    paymentList.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400 text-xs">কোনো পেমেন্ট হিস্ট্রি পাওয়া যায়নি</td></tr>`;
+    paymentList.innerHTML = `<div class="col-span-full bg-slate-800/80 backdrop-blur-md p-8 rounded-2xl border border-slate-700/60 text-center text-slate-400 text-xs">কোনো পেমেন্ট হিস্ট্রি পাওয়া যায়নি</div>`;
     return;
   }
+
+  const gridContainer = document.createElement("div");
+  gridContainer.className =
+    "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full";
 
   payments.forEach((pay) => {
     let status = pay.status ? pay.status.toLowerCase() : "pending";
     let statusBadge = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
 
+    let cardBg = "bg-slate-900";
+    let cardBorder = "border-slate-800";
+    let watermarkHtml = "";
+
     if (status === "success" || status === "completed" || status === "paid") {
       statusBadge = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+      cardBg = "bg-emerald-950/30";
+      cardBorder = "border-emerald-500/50";
+      watermarkHtml = `
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
+          <div class="border-[5px] border-emerald-500/30 rounded-3xl px-8 py-4 transform -rotate-25 flex flex-col items-center justify-center bg-emerald-500/[0.04]">
+            <span class="text-emerald-400 text-4xl font-black uppercase tracking-widest opacity-40">SUCCESS</span>
+            <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest opacity-35 mt-1">VERIFIED & PAID</span>
+          </div>
+        </div>
+      `;
     } else if (status === "rejected" || status === "failed") {
       statusBadge = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+      cardBg = "bg-rose-950/30";
+      cardBorder = "border-rose-500/50";
+      watermarkHtml = `
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
+          <div class="border-[5px] border-rose-500/30 rounded-3xl px-8 py-4 transform -rotate-25 flex flex-col items-center justify-center bg-rose-500/[0.04]">
+            <span class="text-rose-400 text-4xl font-black uppercase tracking-widest opacity-40">FAILED</span>
+            <span class="text-[10px] text-rose-400 font-bold uppercase tracking-widest opacity-35 mt-1">REJECTED</span>
+          </div>
+        </div>
+      `;
+    } else {
+      // PENDING কার্ডের জন্য হলুদ/অ্যাম্বার কালারের সিল স্টাইল
+      statusBadge = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+      cardBg = "bg-yellow-950/20";
+      cardBorder = "border-yellow-500/40";
+      watermarkHtml = `
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
+          <div class="border-[5px] border-yellow-500/30 rounded-3xl px-8 py-4 transform -rotate-25 flex flex-col items-center justify-center bg-yellow-500/[0.04]">
+            <span class="text-yellow-400 text-4xl font-black uppercase tracking-widest opacity-40">PENDING</span>
+            <span class="text-[10px] text-yellow-400 font-bold uppercase tracking-widest opacity-35 mt-1">IN REVIEW</span>
+          </div>
+        </div>
+      `;
     }
 
-    const payDate = formatDateWithTime(pay.created_at || pay.date) || "N/A";
-    const gateway = pay.gateway || pay.payment_method || "N/A";
+    // Database columns mapping
+    const date = pay.date || pay.created_at || "N/A";
+    const workDetails = pay.work_details || "N/A";
+    const gateway = (pay.gateway || "N/A").toUpperCase();
+    const paymentNumber = pay.payment_number || "N/A";
+    const transactionNum =
+      pay.transaction_number || pay.transaction_id || "Pending / N/A";
 
-    const trxId =
-      pay.transaction_id ||
-      pay.trx_id ||
-      pay.sender_number ||
-      currentUser.payment_number ||
-      "N/A";
+    const goodAccount = pay.good_account ?? 0;
+    const badAccount = pay.bad_account ?? 0;
+    const totalAccount = pay.total_account ?? 0;
 
-    const workDetails =
-      pay.work_details || pay.description || pay.note || "N/A";
+    const amount = Number(pay.amount || 0).toFixed(2);
+    const payAmount = Number(pay.pay_amount || 0).toFixed(2);
 
-    let match = workDetails.match(/\d+/);
-    let countNum = match ? match[0] : pay.good_account_count || pay.count || "";
-
-    let accountStatusDisplay = countNum
-      ? `${countNum} গুড অ্যাকাউন্ট`
-      : pay.account_status || "Good Account";
-
-    const amount = Number(pay.amount || pay.total_amount || 0).toFixed(2);
     const displayStatus = pay.status ? pay.status.toUpperCase() : "PENDING";
 
-    const tr = document.createElement("tr");
-    tr.className =
-      "hover:bg-slate-800/40 transition-colors border-b border-slate-700/30";
-    tr.innerHTML = `
-      <td class="p-4 text-xs text-slate-300 font-mono">${payDate}</td>
-      <td class="p-4 text-xs text-slate-200 uppercase font-medium">${gateway}</td>
-      <td class="p-4 text-xs text-indigo-400 font-mono font-semibold">${trxId}</td>
-      <td class="p-4 text-xs text-slate-300">${workDetails}</td>
-      <td class="p-4 text-xs">
-        <span class="px-3 py-1.5 text-xs rounded-lg border font-semibold bg-emerald-500/10 text-emerald-400 border-emerald-500/30 flex items-center gap-1.5 w-max shadow-sm">
-          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          ${accountStatusDisplay}
-        </span>
-      </td>
-      <td class="p-4 text-xs font-semibold text-emerald-400">৳${amount}</td>
-      <td class="p-4 text-xs text-center">
-        <span class="px-3 py-1 text-xs rounded-lg border uppercase tracking-wider font-bold ${statusBadge}">
+    const voucherCard = document.createElement("div");
+    voucherCard.className = `${cardBg} text-slate-100 rounded-3xl border ${cardBorder} shadow-2xl overflow-hidden p-6 relative font-sans transition-all hover:border-slate-600`;
+
+    voucherCard.innerHTML = `
+      <!-- Stamp Watermark -->
+      ${watermarkHtml}
+
+      <!-- Voucher Top Header -->
+      <div class="flex justify-between items-center pb-4 border-b border-slate-800/80 relative z-10">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold text-xs">
+            PV
+          </div>
+          <div>
+            <h4 class="text-xs font-bold tracking-wider uppercase text-white">Payment Voucher</h4>
+            <span class="text-[18px] text-slate-400 font-mono">${date}</span>
+          </div>
+        </div>
+        <span class="px-2.5 py-1 text-[10px] rounded-full border uppercase tracking-wider font-bold ${statusBadge} flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></span>
           ${displayStatus}
         </span>
-      </td>
-    `;
-    paymentList.appendChild(tr);
-  });
-}
+      </div>
 
+      <!-- Work Details Section -->
+      <div class="py-4 border-b border-slate-800/80 relative z-10">
+        <span class="text-[10px] uppercase tracking-wider text-slate-400 block mb-0.5">Work Description</span>
+        <h3 class="text-sm font-bold text-white">${workDetails}</h3>
+      </div>
+
+      <!-- Voucher Details Info -->
+      <div class="py-4 space-y-2.5 border-b border-slate-800/80 text-xs relative z-10">
+        <div class="flex justify-between items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
+          <span class="text-slate-400">Payment Gateway:</span>
+          <span class="font-bold text-amber-300 uppercase">${gateway}</span>
+        </div>
+        <div class="flex justify-between items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
+          <span class="text-slate-400">Account Number:</span>
+          <span class="font-mono text-indigo-300 font-semibold">${paymentNumber}</span>
+        </div>
+        <div class="flex justify-between items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
+          <span class="text-slate-400">Transaction Number:</span>
+          <span class="font-mono text-amber-400 font-semibold">${transactionNum}</span>
+        </div>
+      </div>
+
+      <!-- Stats Summary (Good, Bad, Total Acc) -->
+      <div class="py-4 grid grid-cols-3 gap-2 text-center text-xs border-b border-slate-800/80 relative z-10">
+        <div class="bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20">
+          <span class="text-[10px] uppercase tracking-wider text-emerald-400 block font-medium">Good Acc</span>
+          <span class="text-sm font-bold text-emerald-300">${goodAccount}</span>
+        </div>
+        <div class="bg-rose-500/10 p-2 rounded-xl border border-rose-500/20">
+          <span class="text-[10px] uppercase tracking-wider text-rose-400 block font-medium">Bad Acc</span>
+          <span class="text-sm font-bold text-rose-300">${badAccount}</span>
+        </div>
+        <div class="bg-slate-800/50 p-2 rounded-xl border border-slate-800">
+          <span class="text-[10px] uppercase tracking-wider text-slate-400 block font-medium">Total Acc</span>
+          <span class="text-sm font-bold text-slate-200">${totalAccount}</span>
+        </div>
+      </div>
+
+      <!-- Voucher Bottom Total Amount -->
+      <div class="pt-4 flex items-center justify-between text-xs relative z-10">
+        <div>
+          <span class="text-[15px] text-slate-400 block">Base Amount</span>
+          <strong class="text-sm text-slate-200 font-semibold">৳${amount}</strong>
+        </div>
+        <div class="text-right">
+          <span class="text-[15px] text-yellow-400 block font-semibold uppercase tracking-wider">Paid Amount</span>
+          <span class="text-base font-extrabold text-yellow-400">৳${payAmount}</span>
+        </div>
+      </div>
+    `;
+
+    gridContainer.appendChild(voucherCard);
+  });
+
+  paymentList.appendChild(gridContainer);
+}
 // ================= আপডেটকৃত স্ট্যাটাস ও ইউআই ফাংশন (সেফটি চেকসহ) =================
 function updateStatsAndUI(reports = []) {
   const safeReports = Array.isArray(reports) ? reports : [];
