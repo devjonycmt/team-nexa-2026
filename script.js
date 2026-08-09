@@ -1119,7 +1119,7 @@ function closeAccountDetailsModal() {
   }
 }
 
-// ================= তারিখভিত্তিক একাউন্ট হিস্ট্রি রেন্ডার ফাংশন (পেমেন্ট স্ট্যাটাস ছাড়া) =================
+// ================= তারিখভিত্তিক একাউন্ট হিস্ট্রি রেন্ডার ফাংশন (তারিখ ফরম্যাট সহ) =================
 function renderDateWiseAccountHistory(reports = []) {
   const safeReports = Array.isArray(reports) ? reports : [];
 
@@ -1205,6 +1205,17 @@ function renderDateWiseAccountHistory(reports = []) {
     .map((key) => {
       const item = groupedData[key];
 
+      // তারিখকে '08 Aug 2026' ফরম্যাটে রূপান্তর করার ফাংশন
+      const formattedDate = (() => {
+        const d = new Date(item.date);
+        if (isNaN(d.getTime())) return item.date;
+        return d.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+      })();
+
       let badgeClass = "bg-purple-500/10 text-purple-400 border-purple-500/20";
       if (item.category === "facebook")
         badgeClass = "bg-blue-500/10 text-blue-400 border-blue-500/20";
@@ -1223,7 +1234,7 @@ function renderDateWiseAccountHistory(reports = []) {
 
       return `
       <tr class="hover:bg-slate-800/50 transition-colors border-t border-slate-700/50">
-        <td class="p-4 font-mono text-slate-300">${item.date}</td>
+        <td class="p-4 font-mono text-slate-300">${formattedDate}</td>
         <td class="p-4 font-semibold">
           <span class="px-2.5 py-1 text-xs rounded-lg border uppercase tracking-wider ${badgeClass}">
             ${item.category.replace("_", " ")}
@@ -1342,3 +1353,102 @@ function closeCancelModal() {
     modal.classList.add("hidden");
   }
 }
+
+function selectPlatform(platformValue, element) {
+  // ১. ব্রাউজারের লোকাল স্টোরেজে সেভ করা যাতে পেজ রিফ্রেশ হলেও ডিলিট না হয়
+  localStorage.setItem("selectedPlatform", platformValue);
+
+  // ২. আসল লুকানো সিলেক্ট ট্যাগে ভ্যালু সেট করা
+  const selectElem = document.getElementById("work-type");
+  if (selectElem) {
+    selectElem.value = platformValue;
+    selectElem.dispatchEvent(new Event("change"));
+  }
+
+  // ৩. সব কার্ডের স্টাইল রিসেট করা
+  document.querySelectorAll(".platform-option").forEach((opt) => {
+    opt.className =
+      "platform-option flex items-center justify-between p-3 rounded-xl border border-slate-700/60 bg-slate-900/90 hover:bg-slate-800 cursor-pointer transition-all";
+    const indicator = opt.querySelector(".radio-indicator");
+    if (indicator) {
+      indicator.innerHTML = "";
+      indicator.className =
+        "radio-indicator w-3.5 h-3.5 rounded-full border border-slate-600 flex items-center justify-center shrink-0";
+    }
+  });
+
+  // ৪. প্ল্যাটফর্ম অনুযায়ী নিজস্ব কালার এবং অ্যাকাউন্ট ইনফো বক্সের থিম ঠিক করা
+  let activeBorder = "border-slate-700/60";
+  let activeBg = "bg-slate-900/90";
+  let indicatorClass = "w-3.5 h-3.5 rounded-full bg-slate-600";
+
+  let infoBorder = "border-slate-700/60";
+  let infoShadow = "";
+  let infoBg = "bg-slate-900/40";
+
+  if (platformValue === "instagram") {
+    activeBorder = "border-pink-500 shadow-lg shadow-pink-500/20";
+    activeBg = "bg-gradient-to-r from-pink-500/15 to-slate-900/90";
+    indicatorClass =
+      "w-3.5 h-3.5 rounded-full bg-pink-500 flex items-center justify-center shadow-sm shadow-pink-500";
+
+    infoBorder = "border-pink-500/60";
+    infoShadow = "shadow-xl shadow-pink-500/10";
+    infoBg =
+      "bg-gradient-to-br from-pink-500/10 via-slate-900/40 to-slate-900/60";
+  } else if (platformValue === "facebook") {
+    activeBorder = "border-blue-500 shadow-lg shadow-blue-500/20";
+    activeBg = "bg-gradient-to-r from-blue-500/15 to-slate-900/90";
+    indicatorClass =
+      "w-3.5 h-3.5 rounded-full bg-blue-500 flex items-center justify-center shadow-sm shadow-blue-500";
+
+    infoBorder = "border-blue-500/60";
+    infoShadow = "shadow-xl shadow-blue-500/10";
+    infoBg =
+      "bg-gradient-to-br from-blue-500/10 via-slate-900/40 to-slate-900/60";
+  } else if (platformValue === "meta_ai") {
+    activeBorder = "border-purple-500 shadow-lg shadow-purple-500/20";
+    activeBg = "bg-gradient-to-r from-purple-500/15 to-slate-900/90";
+    indicatorClass =
+      "w-3.5 h-3.5 rounded-full bg-purple-500 flex items-center justify-center shadow-sm shadow-purple-500";
+
+    infoBorder = "border-purple-500/60";
+    infoShadow = "shadow-xl shadow-purple-500/10";
+    infoBg =
+      "bg-gradient-to-br from-purple-500/10 via-slate-900/40 to-slate-900/60";
+  }
+
+  // ৫. যদি সরাসরি এলিমেন্ট পাস না হয় (যেমন পেজ লোড হওয়ার সময়), তবে খুঁজে বের করা
+  if (!element) {
+    document.querySelectorAll(".platform-option").forEach((opt) => {
+      if (
+        opt.getAttribute("onclick") &&
+        opt.getAttribute("onclick").includes(platformValue)
+      ) {
+        element = opt;
+      }
+    });
+  }
+
+  // ৬. ক্লিক করা বা ডিফল্ট কার্ডটিতে নির্দিষ্ট কালার অ্যাপ্লাই করা
+  if (element) {
+    element.className = `platform-option flex items-center justify-between p-3 rounded-xl border ${activeBorder} ${activeBg} cursor-pointer transition-all`;
+    const activeIndicator = element.querySelector(".radio-indicator");
+    if (activeIndicator) {
+      activeIndicator.className = `radio-indicator ${indicatorClass}`;
+      activeIndicator.innerHTML = `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>`;
+    }
+  }
+
+  // ৭. ডানপাশের অ্যাকাউন্ট ইনফো বক্সেও একই কালার থিম সেট করা
+  const infoContainer = document.getElementById("account-info-container");
+  if (infoContainer) {
+    infoContainer.className = `md:col-span-7 space-y-4 p-4 sm:p-5 rounded-2xl border ${infoBorder} ${infoBg} ${infoShadow} transition-all duration-300`;
+  }
+}
+
+// ৮. পেজ লোড বা রিফ্রেশ হওয়ার সাথে সাথে লোকাল স্টোরেজ চেক করে active করা (ডিফল্ট: meta_ai)
+document.addEventListener("DOMContentLoaded", () => {
+  const savedPlatform = localStorage.getItem("selectedPlatform") || "meta_ai";
+  selectPlatform(savedPlatform);
+});
