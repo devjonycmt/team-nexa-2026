@@ -377,72 +377,79 @@ function renderOnlinePaymentsHistory(payments = []) {
       <!-- Stamp Watermark -->
       ${watermarkHtml}
 
-      <!-- Voucher Top Header -->
-      <div class="flex justify-between items-center pb-4 border-b border-slate-800/80 relative z-10">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold text-xs">
-            PV
-          </div>
-          <div>
-            <h4 class="text-xs font-bold tracking-wider uppercase text-white">Payment Voucher</h4>
-            <span class="text-[18px] text-slate-400 font-mono">${date}</span>
-          </div>
-        </div>
-        <span class="px-2.5 py-1 text-[10px] rounded-full border uppercase tracking-wider font-bold ${statusBadge} flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></span>
-          ${displayStatus}
-        </span>
-      </div>
+     <!-- Voucher Top Header -->
+<div class="flex justify-between items-center pb-4 border-b border-slate-700 relative z-30">
+  <div class="flex items-center gap-3">
+    <div class="w-11 h-11 rounded-xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-300 font-bold text-sm shadow-md">
+      PV
+    </div>
+    <div>
+      <h4 class="text-xs font-bold tracking-widest uppercase text-indigo-400 mb-1">Payment Voucher</h4>
+      <span class="text-base font-mono text-white font-semibold">${date}</span>
+    </div>
+  </div>
+  <span class="px-3.5 py-1.5 text-xs rounded-full border uppercase tracking-wider font-bold ${statusBadge} flex items-center gap-2 shadow-md">
+    <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></span>
+    ${displayStatus}
+  </span>
+</div>
 
-      <!-- Work Details Section -->
-      <div class="py-4 border-b border-slate-800/80 relative z-10">
-        <span class="text-[10px] uppercase tracking-wider text-slate-400 block mb-0.5">Work Description</span>
-        <h3 class="text-sm font-bold text-white">${workDetails}</h3>
-      </div>
+<!-- Work Details Section with Dynamic Status Payment Text -->
+<div class="py-4 border-b border-slate-700 relative z-30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+  <div>
+    <span class="text-xs uppercase tracking-wider text-slate-300 font-semibold block mb-1">Work Description</span>
+    <h3 class="text-base font-bold text-white leading-snug">${workDetails}</h3>
+  </div>
+  <div class="self-end sm:self-auto">
+    <span class="text-sm font-extrabold tracking-wider uppercase px-4 py-2 rounded-xl border shadow-lg inline-block ${statusBadge}">
+      ${displayStatus} Payment
+    </span>
+  </div>
+</div>
 
-      <!-- Voucher Details Info -->
-      <div class="py-4 space-y-2.5 border-b border-slate-800/80 text-xs relative z-10">
-        <div class="flex justify-between items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
-          <span class="text-slate-400">Payment Gateway:</span>
-          <span class="font-bold text-amber-300 uppercase">${gateway}</span>
-        </div>
-        <div class="flex justify-between items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
-          <span class="text-slate-400">Account Number:</span>
-          <span class="font-mono text-indigo-300 font-semibold">${paymentNumber}</span>
-        </div>
-        <div class="flex justify-between items-center bg-slate-800/40 p-2.5 rounded-xl border border-slate-800">
-          <span class="text-slate-400">Transaction Number:</span>
-          <span class="font-mono text-amber-400 font-semibold">${transactionNum}</span>
-        </div>
-      </div>
+<!-- Voucher Details Info -->
+<div class="py-4 space-y-3 border-b border-slate-700 text-xs relative z-30">
+  <div class="flex justify-between items-center bg-[#1e2433] px-4 py-3.5 rounded-xl border border-slate-700/80 shadow">
+    <span class="text-slate-300 font-medium text-sm">Payment Gateway:</span>
+    <span class="font-bold text-amber-300 uppercase tracking-wide text-sm">${gateway}</span>
+  </div>
+  <div class="flex justify-between items-center bg-[#1e2433] px-4 py-3.5 rounded-xl border border-slate-700/80 shadow">
+    <span class="text-slate-300 font-medium text-sm">Your Account Number:</span>
+    <span class="font-mono text-indigo-300 font-bold tracking-wide text-sm">${paymentNumber}</span>
+  </div>
+  <div class="flex justify-between items-center bg-[#1e2433] px-4 py-3.5 rounded-xl border border-slate-700/80 shadow">
+    <span class="text-slate-300 font-medium text-sm">Transaction Number:</span>
+    <span class="font-mono text-amber-400 font-bold tracking-wide text-sm">${transactionNum}</span>
+  </div>
+</div>
 
-      <!-- Stats Summary (Good, Bad, Total Acc) -->
-      <div class="py-4 grid grid-cols-3 gap-2 text-center text-xs border-b border-slate-800/80 relative z-10">
-        <div class="bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20">
-          <span class="text-[10px] uppercase tracking-wider text-emerald-400 block font-medium">Good Acc</span>
-          <span class="text-sm font-bold text-emerald-300">${goodAccount}</span>
-        </div>
-        <div class="bg-rose-500/10 p-2 rounded-xl border border-rose-500/20">
-          <span class="text-[10px] uppercase tracking-wider text-rose-400 block font-medium">Bad Acc</span>
-          <span class="text-sm font-bold text-rose-300">${badAccount}</span>
-        </div>
-        <div class="bg-slate-800/50 p-2 rounded-xl border border-slate-800">
-          <span class="text-[10px] uppercase tracking-wider text-slate-400 block font-medium">Total Acc</span>
-          <span class="text-sm font-bold text-slate-200">${totalAccount}</span>
-        </div>
-      </div>
+<!-- Stats Summary (Good, Bad, Total Acc) -->
+<div class="py-4 grid grid-cols-3 gap-3 text-center border-b border-slate-700 relative z-30">
+  <div class="bg-emerald-500/15 p-3.5 rounded-xl border border-emerald-500/30 shadow">
+    <span class="text-xs uppercase tracking-wider text-emerald-300 block font-bold mb-1">Good Acc</span>
+    <span class="text-lg font-extrabold text-emerald-200">${goodAccount}</span>
+  </div>
+  <div class="bg-rose-500/15 p-3.5 rounded-xl border border-rose-500/30 shadow">
+    <span class="text-xs uppercase tracking-wider text-rose-300 block font-bold mb-1">Bad Acc</span>
+    <span class="text-lg font-extrabold text-rose-200">${badAccount}</span>
+  </div>
+  <div class="bg-[#1e2433] p-3.5 rounded-xl border border-slate-700/80 shadow">
+    <span class="text-xs uppercase tracking-wider text-slate-300 block font-bold mb-1">Total Acc</span>
+    <span class="text-lg font-extrabold text-white">${totalAccount}</span>
+  </div>
+</div>
 
-      <!-- Voucher Bottom Total Amount -->
-      <div class="pt-4 flex items-center justify-between text-xs relative z-10">
-        <div>
-          <span class="text-[15px] text-slate-400 block">Base Amount</span>
-          <strong class="text-sm text-slate-200 font-semibold">৳${amount}</strong>
-        </div>
-        <div class="text-right">
-          <span class="text-[15px] text-yellow-400 block font-semibold uppercase tracking-wider">Paid Amount</span>
-          <span class="text-base font-extrabold text-yellow-400">৳${payAmount}</span>
-        </div>
-      </div>
+<!-- Voucher Bottom Total Amount -->
+<div class="pt-4 flex items-center justify-between relative z-30">
+  <div>
+    <span class="text-sm text-slate-300 font-medium block mb-1">Base Amount</span>
+    <strong class="text-lg text-white font-bold">৳${amount}</strong>
+  </div>
+  <div class="text-right">
+    <span class="text-sm text-yellow-400 font-bold uppercase tracking-wider block mb-1">Paid Amount</span>
+    <span class="text-xl font-black text-yellow-300 drop-shadow">৳${payAmount}</span>
+  </div>
+</div>
     `;
 
     gridContainer.appendChild(voucherCard);
