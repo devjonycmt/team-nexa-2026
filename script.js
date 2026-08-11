@@ -624,21 +624,41 @@ function updateStatsAndUI(reports = []) {
     }
   }
 }
+function setSubmitMode(mode) {
+  document.getElementById("submit-mode-input").value = mode;
+  const singleBtn = document.getElementById("mode-single-btn");
+  const bulkBtn = document.getElementById("mode-bulk-btn");
+
+  if (mode === "single") {
+    singleBtn.className =
+      "px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-600 text-white transition";
+    bulkBtn.className =
+      "px-2.5 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-white transition";
+  } else {
+    bulkBtn.className =
+      "px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-600 text-white transition";
+    singleBtn.className =
+      "px-2.5 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-white transition";
+  }
+  renderWorkInputs();
+}
 async function handleWorkSubmit(e) {
   e.preventDefault();
+  const modeInput = document.getElementById("submit-mode-input");
+  const mode = modeInput ? modeInput.value : "single";
+
+  if (mode === "bulk") {
+    return handleBulkSubmitAction(e);
+  }
+
+  // সিঙ্গেল সাবমিট ডাটা প্রসেসিং
   const workTypeElem = document.getElementById("work-type");
   if (!workTypeElem) return;
 
   const work_name = workTypeElem.value;
-
-  let userFullName = "Unknown User";
-  if (currentUser) {
-    userFullName =
-      currentUser.full_name ||
-      currentUser.username ||
-      currentUser.email ||
-      "Unknown User";
-  }
+  let userFullName = currentUser
+    ? currentUser.full_name || currentUser.username || currentUser.email
+    : "Unknown User";
 
   let payload = {
     user_id: currentUser ? currentUser.id : null,
@@ -681,72 +701,142 @@ async function handleWorkSubmit(e) {
   }
 
   const { error } = await supabaseClient.from("work_reports").insert([payload]);
-
   if (error) return alert("জমা ব্যর্থ হয়েছে: " + error.message);
 
   alert("কাজটি সফলভাবে জমা হয়েছে!");
-
-  if (e.target) e.target.reset();
+  e.target.reset();
   renderWorkInputs();
   await loadUserData();
 }
+async function handleBulkSubmitAction(e) {
+  const workTypeElem = document.getElementById("work-type");
+  const work_name = workTypeElem ? workTypeElem.value || "meta_ai" : "meta_ai";
 
+  const textarea = document.getElementById("bulk-work-textarea");
+  if (!textarea || !textarea.value.trim())
+    return alert("দয়া করে বাল্ক ডাটা দিন।");
+
+  const lines = textarea.value.trim().split("\n");
+  let userFullName = currentUser
+    ? currentUser.full_name || currentUser.username || currentUser.email
+    : "Unknown User";
+  let insertPayloads = [];
+  let seenInBatch = new Set();
+
+  for (let i = 0; i < lines.length; i++) {
+    let cleanLine = lines[i].trim();
+    if (!cleanLine) continue;
+
+    let sanitized = cleanLine.replace(/[\u200B\u200C\u200D\uFEFF]/g, "").trim();
+
+    const parts = sanitized.split(/\s+/).map((p) => p.trim());
+
+    // ১ম, ২য় এবং ৩য় শব্দ বাধ্যতামূলক (কোনো অংশ খালি থাকা যাবে না)
+    if (parts.length < 3 || !parts[0] || !parts[1] || !parts[2]) {
+      return alert(
+        `লাইন ${i + 1}-এ তথ্য অসম্পূর্ণ! প্রতিটি লাইনে অবশ্যই ইমেইল, পাসওয়ার্ড এবং ইউজারনেম দিতে হবে।`,
+      );
+    }
+
+    let email = parts[0];
+    let password = parts[1];
+    let username = parts[2];
+
+    // বাল্ক ইনপুটের ভেতরে একই ডাটা বারবার দেওয়া রোধ করতে চেক
+    let uniqueKey = `${email}_${password}_${username}`;
+    if (seenInBatch.has(uniqueKey)) {
+      return alert(
+        `লাইন ${i + 1}-এ ডুপ্লিকেট ডাটা পাওয়া গেছে! একই ডাটা একাধিকবার দেওয়া যাবে না।`,
+      );
+    }
+    seenInBatch.add(uniqueKey);
+
+    let payload = {
+      user_id: currentUser ? currentUser.id : null,
+      full_name: userFullName,
+      work_name,
+      account_email: email,
+      account_password: password,
+      account_username: username,
+      two_fa: "",
+      uid: "",
+      cookies: "",
+      account_stock: "stock",
+      good_count: "pending",
+      created_at: getBangladeshISOString(),
+    };
+
+    insertPayloads.push(payload);
+  }
+
+  if (insertPayloads.length === 0) return alert("কোনো বৈধ ডাটা পাওয়া যায়নি!");
+
+  // ডাটাবেজে ইতিপূর্বে এই ডাটাগুলো জমা আছে কিনা তা চেক করা (Duplicate Database Check)
+  for (let item of insertPayloads) {
+    const { data: existingData, error: checkError } = await supabaseClient
+      .from("work_reports")
+      .select("id")
+      .eq("account_email", item.account_email)
+      .eq("account_password", item.account_password)
+      .eq("account_username", item.account_username)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("Duplicate check error:", checkError);
+    }
+
+    if (existingData) {
+      return alert(
+        `সতর্কতা: "${item.account_email}" এই অ্যাকাউন্টটি ইতিমধ্যে ডাটাবেজে জমা রয়েছে। ডুপ্লিকেট ডাটা পুনরায় জমা দেওয়া যাবে না।`,
+      );
+    }
+  }
+
+  const { error } = await supabaseClient
+    .from("work_reports")
+    .insert(insertPayloads);
+  if (error) return alert("বাল্ক সাবমিট ব্যর্থ হয়েছে: " + error.message);
+
+  alert(`সফলভাবে ${insertPayloads.length}টি অ্যাকাউন্ট একসাথে জমা হয়েছে!`);
+  textarea.value = "";
+  renderWorkInputs();
+  await loadUserData();
+}
 // ডাইনামিক ইনপুট ফিল্ড রেন্ডারিং
 function renderWorkInputs() {
-  const workTypeElem = document.getElementById("work-type");
   const container = document.getElementById("dynamic-work-inputs");
+  const modeInput = document.getElementById("submit-mode-input");
+  const mode = modeInput ? modeInput.value : "single";
 
-  if (!workTypeElem || !container) return;
-  const workType = workTypeElem.value;
+  if (!container) return;
 
-  if (workType === "instagram") {
+  if (mode === "bulk") {
     container.innerHTML = `
       <div>
-        <label class="block text-xs font-medium text-slate-400 mb-1">Username</label>
-        <input type="text" id="work-username" required placeholder="ইন্সটাগ্রাম ইউজারনেম দিন" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
-        <input type="text" id="work-pass" required placeholder="পাসওয়ার্ড দিন" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-400 mb-1">2FA Key</label>
-        <input type="text" id="work-2fa" required placeholder="২এফএ সিকিউরিটি কি" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-      </div>
+    <label class="block text-xs font-medium text-slate-400 mb-1">বাল্ক ডাটা (প্রতি লাইনে ১টি)</label>
+    <textarea id="bulk-work-textarea" required rows="6" placeholder="jonykhan@gmail.com Jony@777 jonycmtd445" class="w-full h-[155px] bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono resize-none"></textarea>
+    <p class="text-[11px] text-slate-400 mt-1">ফরম্যাট: <code>email password username</code> (স্পেস দিয়ে)</p>
+</div>
     `;
-  } else if (workType === "facebook") {
-    container.innerHTML = `
-      <div>
-        <label class="block text-xs font-medium text-slate-400 mb-1">UID</label>
-        <input type="text" id="work-uid" required placeholder="ফেসবুক প্রোফাইল UID" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
-        <input type="text" id="work-pass" required placeholder="পাসওয়ার্ড দিন" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-400 mb-1">Cookies</label>
-        <textarea id="work-cookies" required rows="3" placeholder="সম্পূর্ণ কুকিজ পেস্ট করুন" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500 font-mono text-xs"></textarea>
-      </div>
-    `;
-  } else if (workType === "meta_ai") {
-    container.innerHTML = `
-      <div>
-        <label class="block text-xs font-medium text-slate-400 mb-1">Email</label>
-        <input type="email" id="work-email" required placeholder="ইমেইল এড্রেস দিন" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
-        <input type="text" id="work-pass" required placeholder="পাসওয়ার্ড দিন" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-400 mb-1">Username</label>
-        <input type="text" id="work-username" required placeholder="মেটা ইউজারনেম" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-      </div>
-    `;
+    return;
   }
-}
 
+  // সিঙ্গেল মোড ইনপুট
+  container.innerHTML = `
+    <div>
+      <label class="block text-xs font-medium text-slate-400 mb-1">Email</label>
+      <input type="email" id="work-email" required placeholder="ইমেইল এড্রেস দিন" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
+      <input type="text" id="work-pass" required placeholder="পাসওয়ার্ড দিন" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-slate-400 mb-1">Username</label>
+      <input type="text" id="work-username" required placeholder="মেটা ইউজারনেম" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+    </div>
+  `;
+}
 // ================= ৫. মোডাল লজিক =================
 function openCategoryModal(category) {
   currentModalCategory = category;
@@ -1539,4 +1629,49 @@ function selectPlatform(platformValue, element) {
 document.addEventListener("DOMContentLoaded", () => {
   const savedPlatform = localStorage.getItem("selectedPlatform") || "meta_ai";
   selectPlatform(savedPlatform);
+});
+
+function updateLivePreview() {
+  const tableBody = document.getElementById("live-preview-table-body");
+  const countBadge = document.getElementById("preview-count");
+
+  if (!tableBody || !countBadge) return;
+
+  const textarea = document.querySelector("textarea");
+
+  if (!textarea || !textarea.value.trim()) {
+    tableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-500 text-xs">বামপাশের বক্সে ডাটা লিখলে এখানে টেবিল আকারে প্রিভিউ দেখা যাবে...</td></tr>`;
+    countBadge.innerText = `০ টি আইটেম`;
+    return;
+  }
+
+  const text = textarea.value.trim();
+  const lines = text.split("\n").filter((line) => line.trim() !== "");
+  countBadge.innerText = `${lines.length} টি আইটেম`;
+
+  let html = "";
+  lines.forEach((line, index) => {
+    const parts = line.trim().split(/\s+/);
+    const mail = parts[0] || "";
+    const password = parts[1] || "";
+    const username = parts[2] || "";
+
+    html += `
+      <tr class="hover:bg-slate-800/50 transition">
+        <td class="p-2.5 text-center text-slate-400 font-semibold">${index + 1}</td>
+        <td class="p-2.5 text-indigo-300 truncate max-w-[140px]">${mail}</td>
+        <td class="p-2.5 text-emerald-400">${password}</td>
+        <td class="p-2.5 text-amber-300">${username}</td>
+      </tr>
+    `;
+  });
+
+  tableBody.innerHTML = html;
+}
+
+// ইনপুট দেওয়ার সাথে সাথে প্রিভিউ আপডেট করার ইভেন্ট
+document.addEventListener("input", function (e) {
+  if (e.target.tagName === "TEXTAREA") {
+    updateLivePreview();
+  }
 });
