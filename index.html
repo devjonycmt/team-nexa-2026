@@ -6,6 +6,10 @@
     <title>User Work Dashboard</title>
 
     <!-- Tailwind CSS CDN -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css" />
@@ -725,6 +729,7 @@
                   justify-content: space-between;
                   align-items: center;
                   margin-bottom: 15px;
+                  flex-direction: column;
                 "
               >
                 <h3 style="margin: 0; color: #fff">
@@ -1696,7 +1701,7 @@
           box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
         "
       >
-        <!-- Modal Header -->
+        <!-- Modal Header with Close Icon -->
         <div
           style="
             padding: 15px 20px;
@@ -1707,18 +1712,27 @@
             border-bottom: 1px solid #2d2d3f;
           "
         >
-          <h3 style="margin: 0; color: #fff; font-size: 18px">
+          <h3 style="margin: 0; color: #fff; font-size: 16px; font-weight: 600">
             সকল জমা দেওয়া কাজ (All Submissions)
           </h3>
           <button
             onclick="closeAllSubmissionsModal()"
             style="
-              background: transparent;
+              background: rgba(239, 68, 68, 0.15);
               border: none;
-              color: #aaa;
-              font-size: 20px;
+              color: #f87171;
+              width: 32px;
+              height: 32px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
               cursor: pointer;
+              font-size: 16px;
+              transition: all 0.2s;
             "
+            onmouseover="this.style.background = 'rgba(239, 68, 68, 0.3)'"
+            onmouseout="this.style.background = 'rgba(239, 68, 68, 0.15)'"
           >
             <i class="fa-solid fa-xmark"></i>
           </button>
@@ -1739,7 +1753,7 @@
               <tr style="border-bottom: 1px solid #2d2d3f; color: #8a8d93">
                 <th style="padding: 10px">প্লাটফর্ম</th>
                 <th style="padding: 10px">আইডি / ইমেইল</th>
-                <th style="padding: 10px">রে트</th>
+                <th style="padding: 10px">রেট</th>
                 <th style="padding: 10px">তারিখ</th>
                 <th style="padding: 10px">স্ট্যাটাস</th>
               </tr>
