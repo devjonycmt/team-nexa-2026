@@ -178,7 +178,7 @@ async function handleRegister(e) {
     .single();
 
   if (existingUser) {
-    return alert("এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে!");
+    return showCustomModal("এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট খোলা হয়েছে!");
   }
 
   const { error } = await supabaseClient.from("users").insert([
@@ -192,9 +192,9 @@ async function handleRegister(e) {
     },
   ]);
 
-  if (error) return alert("রেজিস্ট্রেশন ব্যর্থ: " + error.message);
+  if (error) return showCustomModal("রেজিস্ট্রেশন ব্যর্থ: " + error.message);
 
-  alert("রেজিস্ট্রেশন সফল হয়েছে! এখন লগইন করুন।");
+  showCustomModal("রেজিস্ট্রেশন সফল হয়েছে! এখন লগইন করুন।");
   switchAuthTab("login");
 }
 
@@ -212,7 +212,7 @@ async function handleLogin(e) {
     .single();
 
   if (error || !user) {
-    return alert("ভুল ইমেইল অথবা পাসওয়ার্ড দিয়েছেন!");
+    return showCustomModal("ভুল ইমেইল অথবা পাসওয়ার্ড দিয়েছেন!");
   }
 
   currentUser = user;
@@ -450,11 +450,11 @@ function renderOnlinePaymentsHistory(payments = []) {
 
   paymentList.appendChild(gridContainer);
 }
+
 // ================= আপডেটকৃত স্ট্যাটাস ও ইউআই ফাংশন (সেফটি চেকসহ) =================
 function updateStatsAndUI(reports = []) {
   const safeReports = Array.isArray(reports) ? reports : [];
 
-  // ১. বর্তমান ইউজারের আইডি বা ইমেইল বিভিন্ন সম্ভাব্য জায়গা থেকে খোঁজা
   const currentUserId =
     window.currentUserId ||
     localStorage.getItem("user_id") ||
@@ -465,12 +465,6 @@ function updateStatsAndUI(reports = []) {
     localStorage.getItem("user_email") ||
     (window.currentUser ? window.currentUser.email : null);
 
-  // ব্রাউজারের কনসোলে (F12 চেপে) দেখতে পাবেন আইডি ম্যাচ করছে কি না
-  console.log("Detected User ID:", currentUserId);
-  console.log("Detected User Email:", currentUserEmail);
-
-  // ২. ফিল্টারিং: যদি ইউজার আইডি বা ইমেইল না পাওয়া যায়, তবে সেফটির জন্য সব ডাটা দেখাবে (যাতে স্ক্রিন খালি না থাকে)
-  // যদি পাওয়া যায়, তবে শুধুমাত্র সেই ইউজারের ডাটা ফিল্টার করবে।
   const userReports =
     !currentUserId && !currentUserEmail
       ? safeReports
@@ -488,7 +482,6 @@ function updateStatsAndUI(reports = []) {
 
   const todayStr = formatDateToYYYYMMDD(new Date().toISOString());
 
-  // ৩. বর্তমান ইউজারের আজকের রিপোর্টগুলো ফিল্টার করা
   const todayReports = userReports.filter((r) => {
     if (!r.created_at) return false;
     return formatDateToYYYYMMDD(r.created_at) === todayStr;
@@ -524,7 +517,6 @@ function updateStatsAndUI(reports = []) {
     }
   });
 
-  // ড্যাশবোর্ড ওভারভিউ স্ট্যাটাস এলিমেন্ট আপডেট
   if (document.getElementById("stat-today-submissions")) {
     document.getElementById("stat-today-submissions").innerText =
       todaySubmissions;
@@ -624,6 +616,7 @@ function updateStatsAndUI(reports = []) {
     }
   }
 }
+
 function setSubmitMode(mode) {
   document.getElementById("submit-mode-input").value = mode;
   const singleBtn = document.getElementById("mode-single-btn");
@@ -642,6 +635,7 @@ function setSubmitMode(mode) {
   }
   renderWorkInputs();
 }
+
 async function handleWorkSubmit(e) {
   e.preventDefault();
   const modeInput = document.getElementById("submit-mode-input");
@@ -651,7 +645,6 @@ async function handleWorkSubmit(e) {
     return handleBulkSubmitAction(e);
   }
 
-  // সিঙ্গেল সাবমিট ডাটা প্রসেসিং
   const workTypeElem = document.getElementById("work-type");
   if (!workTypeElem) return;
 
@@ -701,20 +694,21 @@ async function handleWorkSubmit(e) {
   }
 
   const { error } = await supabaseClient.from("work_reports").insert([payload]);
-  if (error) return alert("জমা ব্যর্থ হয়েছে: " + error.message);
+  if (error) return showCustomModal("জমা ব্যর্থ হয়েছে: " + error.message);
 
-  alert("কাজটি সফলভাবে জমা হয়েছে!");
+  showCustomModal("কাজটি সফলভাবে জমা হয়েছে!");
   e.target.reset();
   renderWorkInputs();
   await loadUserData();
 }
+
 async function handleBulkSubmitAction(e) {
   const workTypeElem = document.getElementById("work-type");
   const work_name = workTypeElem ? workTypeElem.value || "meta_ai" : "meta_ai";
 
   const textarea = document.getElementById("bulk-work-textarea");
   if (!textarea || !textarea.value.trim())
-    return alert("দয়া করে বাল্ক ডাটা দিন।");
+    return showCustomModal("দয়া করে বাল্ক ডাটা দিন।");
 
   const lines = textarea.value.trim().split("\n");
   let userFullName = currentUser
@@ -731,9 +725,8 @@ async function handleBulkSubmitAction(e) {
 
     const parts = sanitized.split(/\s+/).map((p) => p.trim());
 
-    // ১ম, ২য় এবং ৩য় শব্দ বাধ্যতামূলক (কোনো অংশ খালি থাকা যাবে না)
     if (parts.length < 3 || !parts[0] || !parts[1] || !parts[2]) {
-      return alert(
+      return showCustomModal(
         `লাইন ${i + 1}-এ তথ্য অসম্পূর্ণ! প্রতিটি লাইনে অবশ্যই ইমেইল, পাসওয়ার্ড এবং ইউজারনেম দিতে হবে।`,
       );
     }
@@ -742,10 +735,9 @@ async function handleBulkSubmitAction(e) {
     let password = parts[1];
     let username = parts[2];
 
-    // বাল্ক ইনপুটের ভেতরে একই ডাটা বারবার দেওয়া রোধ করতে চেক
     let uniqueKey = `${email}_${password}_${username}`;
     if (seenInBatch.has(uniqueKey)) {
-      return alert(
+      return showCustomModal(
         `লাইন ${i + 1}-এ ডুপ্লিকেট ডাটা পাওয়া গেছে! একই ডাটা একাধিকবার দেওয়া যাবে না।`,
       );
     }
@@ -769,9 +761,9 @@ async function handleBulkSubmitAction(e) {
     insertPayloads.push(payload);
   }
 
-  if (insertPayloads.length === 0) return alert("কোনো বৈধ ডাটা পাওয়া যায়নি!");
+  if (insertPayloads.length === 0)
+    return showCustomModal("কোনো বৈধ ডাটা পাওয়া যায়নি!");
 
-  // ডাটাবেজে ইতিপূর্বে এই ডাটাগুলো জমা আছে কিনা তা চেক করা (Duplicate Database Check)
   for (let item of insertPayloads) {
     const { data: existingData, error: checkError } = await supabaseClient
       .from("work_reports")
@@ -786,7 +778,7 @@ async function handleBulkSubmitAction(e) {
     }
 
     if (existingData) {
-      return alert(
+      return showCustomModal(
         `সতর্কতা: "${item.account_email}" এই অ্যাকাউন্টটি ইতিমধ্যে ডাটাবেজে জমা রয়েছে। ডুপ্লিকেট ডাটা পুনরায় জমা দেওয়া যাবে না।`,
       );
     }
@@ -795,13 +787,21 @@ async function handleBulkSubmitAction(e) {
   const { error } = await supabaseClient
     .from("work_reports")
     .insert(insertPayloads);
-  if (error) return alert("বাল্ক সাবমিট ব্যর্থ হয়েছে: " + error.message);
+  if (error)
+    return showCustomModal("বাল্ক সাবমিট ব্যর্থ হয়েছে: " + error.message);
 
-  alert(`সফলভাবে ${insertPayloads.length}টি অ্যাকাউন্ট একসাথে জমা হয়েছে!`);
+  showCustomModal(
+    `সফলভাবে ${insertPayloads.length}টি অ্যাকাউন্ট একসাথে জমা হয়েছে!`,
+  );
+
+  // টেক্সটবক্স এবং ডানপাশের লাইভ প্রিভিউ পরিষ্কার করার কোড
   textarea.value = "";
   renderWorkInputs();
+  updateLivePreview();
+
   await loadUserData();
 }
+
 // ডাইনামিক ইনপুট ফিল্ড রেন্ডারিং
 function renderWorkInputs() {
   const container = document.getElementById("dynamic-work-inputs");
@@ -821,7 +821,6 @@ function renderWorkInputs() {
     return;
   }
 
-  // সিঙ্গেল মোড ইনপুট
   container.innerHTML = `
     <div>
       <label class="block text-xs font-medium text-slate-400 mb-1">Email</label>
@@ -837,6 +836,7 @@ function renderWorkInputs() {
     </div>
   `;
 }
+
 // ================= ৫. মোডাল লজিক =================
 function openCategoryModal(category) {
   currentModalCategory = category;
@@ -940,7 +940,7 @@ async function handlePasswordUpdate(e) {
   const newPassword = document.getElementById("update-new-pass").value;
 
   if (!newPassword || newPassword.trim() === "") {
-    return alert("দয়া করে একটি সঠিক পাসওয়ার্ড দিন।");
+    return showCustomModal("দয়া করে একটি সঠিক পাসওয়ার্ড দিন।");
   }
 
   const { error } = await supabaseClient
@@ -948,14 +948,15 @@ async function handlePasswordUpdate(e) {
     .update({ password: newPassword })
     .eq("id", currentUser.id);
 
-  if (error) return alert("পাসওয়ার্ড আপডেট ব্যর্থ হয়েছে: " + error.message);
+  if (error)
+    return showCustomModal("পাসওয়ার্ড আপডেট ব্যর্থ হয়েছে: " + error.message);
 
   currentUser.password = newPassword;
   localStorage.setItem("custom_app_user", JSON.stringify(currentUser));
 
   document.getElementById("prof-password").value = newPassword;
   document.getElementById("update-new-pass").value = "";
-  alert("পাসওয়ার্ড সফলভাবে আপডেট করা হয়েছে!");
+  showCustomModal("পাসওয়ার্ড সফলভাবে আপডেট করা হয়েছে!");
 }
 
 async function handlePaymentUpdate(e) {
@@ -964,7 +965,7 @@ async function handlePaymentUpdate(e) {
   const number = document.getElementById("update-pay-number").value;
 
   if (!number || number.trim() === "") {
-    return alert("দয়া করে সঠিক মোবাইল নাম্বার দিন।");
+    return showCustomModal("দয়া করে সঠিক মোবাইল নাম্বার দিন।");
   }
 
   const { error } = await supabaseClient
@@ -972,7 +973,8 @@ async function handlePaymentUpdate(e) {
     .update({ payment_method: method, payment_number: number })
     .eq("id", currentUser.id);
 
-  if (error) return alert("পেমেন্ট তথ্য আপডেট ব্যর্থ হয়েছে: " + error.message);
+  if (error)
+    return showCustomModal("পেমেন্ট তথ্য আপডেট ব্যর্থ হয়েছে: " + error.message);
 
   currentUser.payment_method = method;
   currentUser.payment_number = number;
@@ -981,7 +983,7 @@ async function handlePaymentUpdate(e) {
   document.getElementById("prof-pay-method").innerText = method;
   document.getElementById("prof-pay-number").innerText = number;
   document.getElementById("update-pay-number").value = "";
-  alert("পেমেন্ট তথ্য সফলভাবে আপডেট করা হয়েছে!");
+  showCustomModal("পেমেন্ট তথ্য সফলভাবে আপডেট করা হয়েছে!");
 }
 
 function toggleSidebar() {
@@ -1002,7 +1004,7 @@ const GENERATOR_SECRET_PASSWORD = "Jony@8844!!!";
 
 function openMetaGeneratorModal() {
   if (typeof currentUser !== "undefined" && !currentUser) {
-    return alert("দয়া করে আগে লগইন করুন!");
+    return showCustomModal("দয়া করে আগে লগইন করুন!");
   }
   document.getElementById("password-prompt-modal").classList.remove("hidden");
   document.getElementById("generator-secret-pass").value = "";
@@ -1016,7 +1018,7 @@ async function verifyGeneratorPassword() {
   const enteredPass = document.getElementById("generator-secret-pass").value;
 
   if (enteredPass !== GENERATOR_SECRET_PASSWORD) {
-    return alert("ভুল পাসওয়ার্ড দেওয়া হয়েছে!");
+    return showCustomModal("ভুল পাসওয়ার্ড দেওয়া হয়েছে!");
   }
 
   closePasswordPrompt();
@@ -1145,16 +1147,16 @@ async function finalizeAccount(accountId) {
     .eq("id", accountId);
 
   if (error) {
-    return alert("ত্রুটি: " + error.message);
+    return showCustomModal("ত্রুটি: " + error.message);
   }
 
-  alert("সফলভাবে সম্পন্ন হয়েছে!");
+  showCustomModal("সফলভাবে সম্পন্ন হয়েছে!");
   closeMetaGeneratorModal();
 }
 
 function copyText(text, label) {
   navigator.clipboard.writeText(text);
-  alert(label + " সফলভাবে কপি করা হয়েছে!");
+  showCustomModal(label + " সফলভাবে কপি করা হয়েছে!");
 }
 
 // ================= ডেইলি হিস্ট্রি টেবিল ও ভিউ বাটন রেন্ডারিং =================
@@ -1383,7 +1385,6 @@ function renderDateWiseAccountHistory(reports = []) {
     .map((key) => {
       const item = groupedData[key];
 
-      // তারিখকে '08 Aug 2026' ফরম্যাটে রূপান্তর করার ফাংশন
       const formattedDate = (() => {
         const d = new Date(item.date);
         if (isNaN(d.getTime())) return item.date;
@@ -1533,17 +1534,14 @@ function closeCancelModal() {
 }
 
 function selectPlatform(platformValue, element) {
-  // ১. ব্রাউজারের লোকাল স্টোরেজে সেভ করা যাতে পেজ রিফ্রেশ হলেও ডিলিট না হয়
   localStorage.setItem("selectedPlatform", platformValue);
 
-  // ২. আসল লুকানো সিলেক্ট ট্যাগে ভ্যালু সেট করা
   const selectElem = document.getElementById("work-type");
   if (selectElem) {
     selectElem.value = platformValue;
     selectElem.dispatchEvent(new Event("change"));
   }
 
-  // ৩. সব কার্ডের স্টাইল রিসেট করা
   document.querySelectorAll(".platform-option").forEach((opt) => {
     opt.className =
       "platform-option flex items-center justify-between p-3 rounded-xl border border-slate-700/60 bg-slate-900/90 hover:bg-slate-800 cursor-pointer transition-all";
@@ -1555,7 +1553,6 @@ function selectPlatform(platformValue, element) {
     }
   });
 
-  // ৪. প্ল্যাটফর্ম অনুযায়ী নিজস্ব কালার এবং অ্যাকাউন্ট ইনফো বক্সের থিম ঠিক করা
   let activeBorder = "border-slate-700/60";
   let activeBg = "bg-slate-900/90";
   let indicatorClass = "w-3.5 h-3.5 rounded-full bg-slate-600";
@@ -1596,7 +1593,6 @@ function selectPlatform(platformValue, element) {
       "bg-gradient-to-br from-purple-500/10 via-slate-900/40 to-slate-900/60";
   }
 
-  // ৫. যদি সরাসরি এলিমেন্ট পাস না হয় (যেমন পেজ লোড হওয়ার সময়), তবে খুঁজে বের করা
   if (!element) {
     document.querySelectorAll(".platform-option").forEach((opt) => {
       if (
@@ -1608,7 +1604,6 @@ function selectPlatform(platformValue, element) {
     });
   }
 
-  // ৬. ক্লিক করা বা ডিফল্ট কার্ডটিতে নির্দিষ্ট কালার অ্যাপ্লাই করা
   if (element) {
     element.className = `platform-option flex items-center justify-between p-3 rounded-xl border ${activeBorder} ${activeBg} cursor-pointer transition-all`;
     const activeIndicator = element.querySelector(".radio-indicator");
@@ -1618,14 +1613,12 @@ function selectPlatform(platformValue, element) {
     }
   }
 
-  // ৭. ডানপাশের অ্যাকাউন্ট ইনফো বক্সেও একই কালার থিম সেট করা
   const infoContainer = document.getElementById("account-info-container");
   if (infoContainer) {
     infoContainer.className = `md:col-span-7 space-y-4 p-4 sm:p-5 rounded-2xl border ${infoBorder} ${infoBg} ${infoShadow} transition-all duration-300`;
   }
 }
 
-// ৮. পেজ লোড বা রিফ্রেশ হওয়ার সাথে সাথে লোকাল স্টোরেজ চেক করে active করা (ডিফল্ট: meta_ai)
 document.addEventListener("DOMContentLoaded", () => {
   const savedPlatform = localStorage.getItem("selectedPlatform") || "meta_ai";
   selectPlatform(savedPlatform);
@@ -1669,9 +1662,119 @@ function updateLivePreview() {
   tableBody.innerHTML = html;
 }
 
-// ইনপুট দেওয়ার সাথে সাথে প্রিভিউ আপডেট করার ইভেন্ট
 document.addEventListener("input", function (e) {
   if (e.target.tagName === "TEXTAREA") {
     updateLivePreview();
+  }
+});
+
+function showCustomModal(message, title = "সতর্কতা") {
+  const modal = document.getElementById("customModal");
+  const modalBox = document.getElementById("customModalBox");
+  const titleEl = document.getElementById("customModalTitle");
+  const msgEl = document.getElementById("customModalMessage");
+
+  if (!modal) return;
+
+  titleEl.textContent = title;
+  msgEl.textContent = message;
+
+  modal.classList.remove("hidden");
+  setTimeout(() => {
+    modalBox.classList.remove("scale-95", "opacity-0");
+    modalBox.classList.add("scale-100", "opacity-100");
+  }, 10);
+}
+
+function closeCustomModal() {
+  const modal = document.getElementById("customModal");
+  const modalBox = document.getElementById("customModalBox");
+
+  if (!modal) return;
+
+  modalBox.classList.remove("scale-100", "opacity-100");
+  modalBox.classList.add("scale-95", "opacity-0");
+  setTimeout(() => {
+    modal.classList.add("hidden");
+  }, 200);
+}
+
+// See All মডাল ওপেন করার ফাংশন এবং সকল ডাটা ফেচ করা
+async function openAllSubmissionsModal() {
+  const modal = document.getElementById("all-submissions-modal");
+  const tbody = document.getElementById("all-submissions-tbody");
+  if (!modal || !tbody) return;
+
+  modal.style.display = "flex";
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #aaa;">লোড হচ্ছে...</td></tr>`;
+
+  try {
+    let query = supabaseClient
+      .from("work_reports")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    // যদি ইউজার আইডি অনুযায়ী ফিল্টার করতে হয়
+    if (currentUser && currentUser.id) {
+      query = query.eq("user_id", currentUser.id);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #ff5252;">ডাটা লোড করতে সমস্যা হয়েছে!</td></tr>`;
+      console.error(error);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #aaa;">কোনো কাজ পাওয়া যায়নি।</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = "";
+    data.forEach((item) => {
+      let statusBadge = "";
+      if (item.account_stock === "success" || item.good_count === "success") {
+        statusBadge = `<span style="background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 500;">Success</span>`;
+      } else if (
+        item.account_stock === "cancel" ||
+        item.good_count === "cancel"
+      ) {
+        statusBadge = `<span style="background: rgba(239, 68, 68, 0.15); color: #f87171; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 500;">Cancel</span>`;
+      } else {
+        statusBadge = `<span style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 500;">Pending</span>`;
+      }
+
+      let row = `
+        <tr style="border-bottom: 1px solid #252538;">
+          <td style="padding: 12px 10px;"><span style="background: rgba(99, 102, 241, 0.15); color: #818cf8; padding: 3px 8px; border-radius: 4px; font-size: 11px;">${item.work_name || "META AI"}</span></td>
+          <td style="padding: 12px 10px;">${item.account_email || item.account_username || "N/A"}</td>
+          <td style="padding: 12px 10px; color: #34d399;">৳1.00</td>
+          <td style="padding: 12px 10px; color: #9ca3af; font-size: 13px;">${item.created_at ? new Date(item.created_at).toLocaleString() : ""}</td>
+          <td style="padding: 12px 10px;">${statusBadge}</td>
+        </tr>
+      `;
+      tbody.innerHTML += row;
+    });
+  } catch (err) {
+    console.error("Error fetching all submissions:", err);
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: #ff5252;">unexpected error occurred.</td></tr>`;
+  }
+}
+
+// See All মডাল বন্ধ করার ফাংশন
+function closeAllSubmissionsModal() {
+  const modal = document.getElementById("all-submissions-modal");
+  if (modal) {
+    modal.style.display = "none";
+  }
+}
+
+// বাইরে ক্লিক করলে মডাল বন্ধ হওয়ার অপশন (ঐচ্ছিক)
+window.addEventListener("click", function (event) {
+  const modal = document.getElementById("all-submissions-modal");
+  if (event.target === modal) {
+    closeAllSubmissionsModal();
   }
 });
