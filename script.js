@@ -1785,3 +1785,70 @@ window.addEventListener("click", function (event) {
     closeAllSubmissionsModal();
   }
 });
+
+// রাইট ক্লিক বন্ধ করা
+document.addEventListener("contextmenu", (event) => event.preventDefault());
+
+// কিবোর্ড শর্টকাট (F12, Ctrl+Shift+I, Ctrl+U) বন্ধ করা
+document.onkeydown = function (e) {
+  if (
+    e.keyCode == 123 || // F12
+    (e.ctrlKey && e.shiftKey && e.keyCode == "I".charCodeAt(0)) || // Ctrl+Shift+I
+    (e.ctrlKey && e.shiftKey && e.keyCode == "C".charCodeAt(0)) || // Ctrl+Shift+C
+    (e.ctrlKey && e.shiftKey && e.keyCode == "J".charCodeAt(0)) || // Ctrl+Shift+J
+    (e.ctrlKey && e.keyCode == "U".charCodeAt(0))
+  ) {
+    // Ctrl+U
+    return false;
+  }
+};
+async function checkPanelStatus() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("app_settings")
+      .select("panel_status, offline_message")
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error("Panel status fetch error:", error.message);
+      document.body.style.visibility = "visible"; // এরর হলে পেজ শো করবে
+      return;
+    }
+
+    // যদি প্যানেল ফলস (false) বা বন্ধ থাকে
+    if (
+      data &&
+      (data.panel_status === false || data.panel_status === "false")
+    ) {
+      // ড্যাশবোর্ড হাইড করার দরকার নেই, পুরো বডিই ওভারলে দিয়ে ঢেকে দেওয়া হবে
+      let offlineOverlay = document.getElementById("panel-offline-overlay");
+      if (!offlineOverlay) {
+        offlineOverlay = document.createElement("div");
+        offlineOverlay.id = "panel-offline-overlay";
+        offlineOverlay.style.cssText =
+          "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #0f172a; z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 20px;";
+        document.body.appendChild(offlineOverlay);
+      }
+
+      offlineOverlay.innerHTML = `
+        <div style="background: #1e293b; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); max-width: 500px; width: 100%; border: 1px solid #334155; text-align: center; font-family: sans-serif;">
+          <h2 style="color: #ef4444; margin-bottom: 15px; font-size: 26px; font-weight: bold;">⚠️ প্যানেল বন্ধ আছে</h2>
+          <p style="color: #cbd5e1; font-size: 16px; line-height: 1.6; background: #0f172a; padding: 18px; border-radius: 10px; border: 1px solid #475569; margin: 0;">${data.offline_message || "প্যানেলটি সাময়িকভাবে বন্ধ রাখা হয়েছে।"}</p>
+        </div>
+      `;
+
+      // ওভারলে আসার পর বডি দৃশ্যমান করে দিন
+      document.body.style.visibility = "visible";
+    } else {
+      // প্যানেল অন থাকলে নরমally পেজ শো করবে
+      document.body.style.visibility = "visible";
+    }
+  } catch (err) {
+    console.error("Unexpected error in checkPanelStatus:", err);
+    document.body.style.visibility = "visible";
+  }
+}
+
+// পেজ লোড হওয়ার সাথে সাথেই ফাংশনটি কল করুন
+checkPanelStatus();

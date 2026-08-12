@@ -1,3 +1,8 @@
+/* প্যানেল স্ট্যাটাস চেক না হওয়া পর্যন্ত সবকিছু লুকিয়ে রাখবে */
+body {
+  visibility: hidden;
+}
+
 /* Custom Scrollbar for dark theme */
 ::-webkit-scrollbar {
   width: 8px;
