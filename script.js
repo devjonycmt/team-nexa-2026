@@ -1518,7 +1518,7 @@ function openCancelDetailsModal(item) {
       tr.innerHTML = `
         <td class="p-3 font-mono text-slate-400">${idx + 1}</td>
         <td class="p-3 text-slate-200 font-mono font-semibold">${accountDisplay}</td>
-        <td class="p-3 text-slate-300 font-mono">${password}</td>
+        <td class="p-3 text-slate-300 font-mono cancel-password-field">${password}</td>
         <td class="p-3 text-indigo-300 font-mono max-w-[250px] truncate" title="${extraInfo}">${extraInfo}</td>
         <td class="p-3 text-center">
           <span class="px-2.5 py-1 text-[11px] rounded-lg font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30">
@@ -1531,6 +1531,28 @@ function openCancelDetailsModal(item) {
   }
 
   modal.classList.remove("hidden");
+}
+// ক্যানসেল মডালের সব পাসওয়ার্ড একসাথে কপি করার ফাংশন
+function copyAllCancelPasswords() {
+  const passwordElements = document.querySelectorAll(".cancel-password-field");
+  if (passwordElements.length === 0) {
+    showCustomModal("কোনো পাসওয়ার্ড পাওয়া যায়নি!");
+    return;
+  }
+
+  const allPasswords = Array.from(passwordElements)
+    .map((el) => el.innerText.trim())
+    .join("\n");
+
+  navigator.clipboard
+    .writeText(allPasswords)
+    .then(() => {
+      showCustomModal("সব ক্যানসেল পাসওয়ার্ড সফলভাবে কপি করা হয়েছে!");
+    })
+    .catch((err) => {
+      console.error("Failed to copy all passwords: ", err);
+      showCustomModal("পাসওয়ার্ড কপি করতে সমস্যা হয়েছে!");
+    });
 }
 
 function closeCancelModal() {
@@ -1785,6 +1807,50 @@ window.addEventListener("click", function (event) {
     closeAllSubmissionsModal();
   }
 });
+
+// ক্যানসেল মডার ডাটা সরাসরি সত্যিকারের এক্সেল (.xlsx) ফরম্যাটে ডাউনলোড করার ফাংশন
+function downloadCancelDataExcel() {
+  const table = document.getElementById("cancel-modal-accounts-list");
+  if (!table) return;
+
+  const rows = table.querySelectorAll("tr");
+
+  if (
+    rows.length === 0 ||
+    (rows.length === 1 &&
+      rows[0].innerText.includes("কোনো ক্যানসেল রিপোর্ট পাওয়া যায়নি"))
+  ) {
+    showCustomModal("ডাউনলোড করার মতো কোনো ডাটা নেই!");
+    return;
+  }
+
+  // এক্সেলের হেডার এবং রো তৈরির জন্য ডাটা অ্যারে প্রস্তুত করা
+  const excelData = [
+    ["Serial", "Account / Username / UID", "Password", "Extra Info", "Status"],
+  ];
+
+  rows.forEach((row) => {
+    const cols = row.querySelectorAll("td");
+    if (cols.length >= 5) {
+      const serial = cols[0].innerText.trim();
+      const account = cols[1].innerText.trim();
+      const password = cols[2].innerText.trim();
+      const extraInfo = cols[3].innerText.trim();
+      const status = cols[4].innerText.trim();
+
+      excelData.push([serial, account, password, extraInfo, status]);
+    }
+  });
+
+  // SheetJS দিয়ে ওয়ার্কশিট এবং ওয়ার্কবুক তৈরি
+  const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Cancel Accounts");
+
+  // সরাসরি .xlsx ফাইল হিসেবে ডাউনলোড শুরু করা
+  const fileName = `cancel-accounts-${new Date().toISOString().slice(0, 10)}.xlsx`;
+  XLSX.writeFile(workbook, fileName);
+}
 
 // রাইট ক্লিক বন্ধ করা
 document.addEventListener("contextmenu", (event) => event.preventDefault());
