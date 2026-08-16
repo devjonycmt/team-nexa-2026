@@ -12,6 +12,7 @@
     />
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Custom CSS -->
+    <link rel="stylesheet" href="admin.css" />
     <link rel="stylesheet" href="style.css" />
     <!-- Supabase JS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1788,9 +1789,82 @@
         </div>
       </div>
     </div>
+    <!-- Fixed Admin Floating Button -->
+    <button id="adminBtn" class="fixed-admin-btn" title="View Admin Info">
+      <i class="fa-solid fa-user-shield"></i>
+      <span>Admin</span>
+    </button>
+
+    <!-- Admin Information Modal -->
+    <div id="adminModal" class="admin-modal-overlay">
+      <div class="admin-modal-card">
+        <!-- Cover Photo Area -->
+        <div
+          class="admin-cover"
+          style="
+            background-image: url(https://scontent.fdac157-1.fna.fbcdn.net/v/t39.30808-6/759664183_2522839998137957_2802806674194228170_n.jpg?stp=dst-jpg_tt6&cstp=mx2048x1536&ctp=s2048x1536&_nc_cat=102&ccb=1-7&_nc_sid=cc71e4&_nc_eui2=AeFSqTQLcOuMKEy-mT8fJbMgwo0HDUrR5WTCjQcNStHlZDM_bfi_XgMjCFM7jeJbTIE1O25wi1KjcwRuOL3tdTrh&_nc_ohc=oKRTASNXLCAQ7kNvwHCJJx6&_nc_oc=AdpzM6uE8PbznsnRKuqgACQiCS_Kx_KolijBr_08dikNzPhz6ZcUOHVnP39AznF0e-k&_nc_zt=23&_nc_ht=scontent.fdac157-1.fna&_nc_gid=Tqo7MUCLB5sWvX60B0bbZA&_nc_ss=7e2a8&oh=00_AQENcbhl0QLQxLHg361bVde_X2Nupeb3jOjhaMplfItwoA&oe=6A874276);
+          "
+        >
+          <button id="closeAdminModal" class="modal-close-btn" title="Close">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Modal Body Content -->
+        <div class="admin-modal-content">
+          <!-- Profile Picture -->
+          <div class="admin-avatar-container">
+            <img
+              src="https://i.ibb.co.com/pvmcb9r6/team-admin.jpg"
+              alt="Jony Islam"
+              class="admin-avatar-img"
+            />
+          </div>
+
+          <div class="admin-details">
+            <h3>Jony Islam</h3>
+            <p class="admin-role">Code Alchemist & Full-Stack Dev</p>
+            <p class="admin-team">TEAM NEXA</p>
+          </div>
+
+          <!-- Social Links Grid -->
+          <div class="admin-social-links">
+            <a
+              href="https://www.facebook.com/jonycmt/"
+              target="_blank"
+              class="social-link fb"
+            >
+              <i class="fa-brands fa-facebook"></i> Facebook
+            </a>
+            <a
+              href="https://wa.me/+8801784099162"
+              target="_blank"
+              class="social-link wa"
+            >
+              <i class="fa-brands fa-whatsapp"></i> WhatsApp
+            </a>
+            <a
+              href="https://t.me/team_passivpay_nexa"
+              target="_blank"
+              class="social-link tg"
+            >
+              <i class="fa-brands fa-telegram"></i> Telegram
+            </a>
+            <a
+              href="https://www.youtube.com/@passivepaynexa"
+              target="_blank"
+              class="social-link yt"
+            >
+              <i class="fa-brands fa-youtube"></i> YouTube
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Custom JavaScript File -->
     <!-- SheetJS Library for Real Excel (.xlsx) Download -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="admin.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

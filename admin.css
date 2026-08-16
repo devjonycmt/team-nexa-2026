@@ -1,0 +1,255 @@
+/* High-Visibility Eye-Catching Fixed Admin Floating Button */
+.fixed-admin-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: linear-gradient(135deg, #00f0ff 0%, #0072ff 100%);
+  color: #ffffff;
+  border: 2px solid rgba(0, 240, 255, 0.9);
+  border-radius: 35px;
+  padding: 10px 14px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow:
+    0 0 25px rgba(0, 240, 255, 0.6),
+    inset 0 0 10px rgba(255, 255, 255, 0.4);
+  animation:
+    adminPulse 2s infinite,
+    adminFloat 3s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.fixed-admin-btn:hover {
+  transform: translateY(-5px) scale(1.06);
+  box-shadow:
+    0 0 40px rgba(0, 240, 255, 0.95),
+    inset 0 0 15px rgba(255, 255, 255, 0.6);
+}
+
+/* Neon Glow Pulse Animation */
+@keyframes adminPulse {
+  0% {
+    box-shadow:
+      0 0 15px rgba(0, 240, 255, 0.5),
+      0 0 0 0 rgba(0, 240, 255, 0.5);
+  }
+  70% {
+    box-shadow:
+      0 0 30px rgba(0, 240, 255, 0.8),
+      0 0 0 14px rgba(0, 240, 255, 0);
+  }
+  100% {
+    box-shadow:
+      0 0 15px rgba(0, 240, 255, 0.5),
+      0 0 0 0 rgba(0, 240, 255, 0);
+  }
+}
+/* Mobile Responsive - Compact Size for Smaller Screens */
+@media (max-width: 768px) {
+  .fixed-admin-btn {
+    bottom: 20px;
+    right: 20px;
+    padding: 5px 16px;
+    font-size: 12px;
+    border-radius: 25px;
+    gap: 6px;
+    border-width: 1.5px;
+    box-shadow:
+      0 0 18px rgba(0, 240, 255, 0.5),
+      inset 0 0 8px rgba(255, 255, 255, 0.3);
+    animation:
+      adminPulseMobile 2s infinite,
+      adminFloat 3s ease-in-out infinite;
+  }
+}
+
+/* Admin Modal Overlay */
+.admin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(5, 8, 15, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.admin-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Enlarged Admin Modal Card */
+.admin-modal-card {
+  background: rgba(17, 24, 39, 0.98);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+  transform: scale(0.95);
+  transition: transform 0.3s ease;
+}
+
+.admin-modal-overlay.active .admin-modal-card {
+  transform: scale(1);
+}
+
+/* Larger Cover Photo with Cyber Grid */
+.admin-cover {
+  width: 100%;
+  height: 160px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cyber-grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.07) 1px, transparent 1px);
+  background-size: 16px 16px;
+  pointer-events: none;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  z-index: 10;
+  transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+  background: rgba(248, 113, 113, 0.8);
+  border-color: #f87171;
+}
+
+/* Modal Content & Larger Avatar */
+.admin-modal-content {
+  padding: 0 24px 24px 24px;
+  position: relative;
+  margin-top: -50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.admin-avatar-container {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 4px solid #111827;
+  overflow: hidden;
+  background: #0b0f19;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+.admin-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-details {
+  margin-top: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-details h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.admin-role {
+  font-size: 13px;
+  color: #00f0ff;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.admin-team {
+  font-size: 11px;
+  color: #64748b;
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* Larger Social Links Grid & Icons */
+.admin-social-links {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.social-link {
+  background: #0b0f19;
+  border: 1px solid #1e293b;
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 13px;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s;
+}
+
+.social-link:hover {
+  border-color: #00f0ff;
+  background: rgba(0, 240, 255, 0.05);
+  color: #00f0ff;
+}
+
+.social-link.fb i {
+  color: #1877f2;
+}
+.social-link.wa i {
+  color: #25d366;
+}
+.social-link.tg i {
+  color: #229ed9;
+}
+.social-link.yt i {
+  color: #ff0000;
+}
